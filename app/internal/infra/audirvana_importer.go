@@ -2,6 +2,7 @@ package infra
 
 import (
 	"audirvana-scrobbler/app/internal/domain"
+	"audirvana-scrobbler/app/internal/infra/internal"
 	"audirvana-scrobbler/app/shared/response"
 	"context"
 	"database/sql"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
 	"github.com/samber/lo"
@@ -23,19 +23,21 @@ import (
 const LAST_SCROBBLE_TIME_LOG = "lastScrobbleTime.log"
 
 type audirvanaImporterImpl struct {
-	configpath ConfigPath
-	tempPath   TempPath
+	configpath internal.ConfigPath
+	tempPath   internal.TempPath
+	repo       *trackInfoRepositoryImpl
 }
 
 func NewAudirvanaImporter(i *do.Injector) (domain.AudirvanaImporter, error) {
 	return &audirvanaImporterImpl{
-		configpath: do.MustInvoke[ConfigPath](i),
-		tempPath:   do.MustInvoke[TempPath](i),
+		configpath: do.MustInvoke[internal.ConfigPath](i),
+		tempPath:   do.MustInvoke[internal.TempPath](i),
+		repo:       do.MustInvoke[domain.TrackInfoRepository](i).(*trackInfoRepositoryImpl),
 	}, nil
 }
 
 func (a *audirvanaImporterImpl) GetAllTracks(ctx context.Context) ([]response.TrackInfo, error) {
-	dbPath, err := a.copyDBFileToLocal()
+	dbPath, err := a.getTempDBPath()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (a *audirvanaImporterImpl) GetAllTracks(ctx context.Context) ([]response.Tr
 		return nil, err
 	}
 
-	tracks, err := a.getScrobbleLog(ctx, *dbPath, *lastScrobbleTime)
+	tracks, err := a.getScrobbleLog(ctx, dbPath, lastScrobbleTime)
 	if err != nil {
 		return nil, err
 	}
@@ -54,35 +56,35 @@ func (a *audirvanaImporterImpl) GetAllTracks(ctx context.Context) ([]response.Tr
 	return tracks, nil
 }
 
-func (a *audirvanaImporterImpl) copyDBFileToLocal() (*string, error) {
+func (a *audirvanaImporterImpl) getTempDBPath() (string, error) {
 	audirvanaConfigPath := configdir.LocalConfig("Audirvana")
-	dbPathOriginal := filepath.Join(audirvanaConfigPath, "AudirvanaDatabase.sqlite")
-	dbPathTemp := a.tempPath.GetJoinedPath("AudirvanaDatabase.sqlite")
+	originalDBPath := filepath.Join(audirvanaConfigPath, "AudirvanaDatabase.sqlite")
+	tempDBPath := a.tempPath.GetJoinedPath("AudirvanaDatabase.sqlite")
 
-	src, err := os.Open(dbPathOriginal)
+	src, err := os.Open(originalDBPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+		return "", fmt.Errorf("failed to open file: %w", err)
 	}
 	defer src.Close()
 
-	dst, err := os.Create(dbPathTemp)
+	dst, err := os.Create(tempDBPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create local DB file: %w", err)
+		return "", fmt.Errorf("failed to create local DB file: %w", err)
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, src); err != nil {
-		return nil, fmt.Errorf("failed to copy DB file to local: %w", err)
+		return "", fmt.Errorf("failed to copy DB file to local: %w", err)
 	}
 
-	return &dbPathTemp, nil
+	return tempDBPath, nil
 }
 
-func (a *audirvanaImporterImpl) readLastScrobbleTime() (*string, error) {
+func (a *audirvanaImporterImpl) readLastScrobbleTime() (string, error) {
 	logPath := a.configpath.GetJoinedPath(LAST_SCROBBLE_TIME_LOG)
 	file, err := os.OpenFile(logPath, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open last scrobble time log: %w", err)
+		return "", fmt.Errorf("failed to open last scrobble time log: %w", err)
 	}
 	defer file.Close()
 
@@ -90,7 +92,7 @@ func (a *audirvanaImporterImpl) readLastScrobbleTime() (*string, error) {
 	n, _ := file.Read(buf)
 
 	lastScrobble := lo.Ternary(n == 0, "2459364.9074768517", strings.TrimSpace(string(buf[:n])))
-	return lo.ToPtr(lastScrobble), nil
+	return lastScrobble, nil
 }
 
 func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath string, lastScrobbleTime string) ([]response.TrackInfo, error) {
@@ -102,8 +104,7 @@ func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath s
 
 	query := `
 		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title,
-			   date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time,
-			   last_played_date
+			   date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
 		FROM TRACKS
 		JOIN ALBUMS ON ALBUMS.album_id = TRACKS.album_id
 		JOIN ALBUMS_ARTISTS ON ALBUMS_ARTISTS.album_id = ALBUMS.album_id
@@ -118,23 +119,31 @@ func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath s
 	}
 	defer rows.Close()
 
-	var tracks []response.TrackInfo
+	var newTracks []internal.TrackInfoDBSchema
 	for rows.Next() {
-		var track response.TrackInfo
+		var track internal.TrackInfoDBSchema
 		var playedDate, playedTime string
-		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedDate, &playedTime, &track.PlayedAt); err != nil {
+		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedDate, &playedTime); err != nil {
 			return nil, err
 		}
 
-		playedAt, err := time.Parse("2006-01-02 15:04:05", fmt.Sprintf("%s %s", playedDate, playedTime))
+		track.PlayedAt, err = time.Parse("2006-01-02 15:04:05", fmt.Sprintf("%s %s", playedDate, playedTime))
 		if err != nil {
 			return nil, err
 		}
-		track.PlayedAt = playedAt.Format(time.RFC3339)
-		track.Id = uuid.New().String()
-
-		tracks = append(tracks, track)
+		newTracks = append(newTracks, track)
 	}
 
-	return tracks, nil
+	// Update local DB
+	if err := a.repo.Update(ctx, newTracks); err != nil {
+		return nil, err
+	}
+
+	// Get all tracks from local DB
+	ret, err := a.repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }

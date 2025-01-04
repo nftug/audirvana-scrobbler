@@ -1,4 +1,4 @@
-import { handleApiError } from '@/lib/api/errors'
+import { ApiError, handleApiError } from '@/lib/api/errors'
 import { useQuery } from '@tanstack/react-query'
 import { GetTrackInfo } from '@wailsjs/go/app/App'
 import { useConfirm } from 'material-ui-confirm'
@@ -14,13 +14,9 @@ export const useTrackListQuery = () => {
 
   useEffect(() => {
     if (!error) return
-    confirm({ title: 'Error', description: error.message, hideCancelButton: true })
+    const message = error instanceof ApiError ? error.data?.message : error.message
+    confirm({ title: 'Error', description: message, hideCancelButton: true })
   }, [error])
-
-  useEffect(() => {
-    if (!data) return
-    console.log(data)
-  }, [data])
 
   return { data, error, isPending }
 }
