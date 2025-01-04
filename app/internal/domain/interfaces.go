@@ -5,8 +5,8 @@ import (
 	"context"
 )
 
-type AudirvanaImporter interface {
-	GetAllTracks(ctx context.Context) ([]response.TrackInfo, error)
+type AudirvanaUpdater interface {
+	Update(ctx context.Context) error
 }
 
 type TrackInfoRepository interface {

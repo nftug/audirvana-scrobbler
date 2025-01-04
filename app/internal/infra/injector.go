@@ -11,6 +11,6 @@ func Inject(i *do.Injector) {
 	do.Provide(i, internal.NewTempPath)
 	do.Provide(i, internal.NewDB)
 
-	do.Provide(i, NewAudirvanaImporter)
+	do.Provide(i, NewAudirvanaUpdater)
 	do.Provide(i, NewTrackInfoRepository)
 }

@@ -3,7 +3,6 @@ package infra
 import (
 	"audirvana-scrobbler/app/internal/domain"
 	"audirvana-scrobbler/app/internal/infra/internal"
-	"audirvana-scrobbler/app/shared/response"
 	"context"
 	"database/sql"
 	"fmt"
@@ -16,47 +15,48 @@ import (
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
 	"github.com/samber/lo"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 const LAST_SCROBBLE_TIME_LOG = "lastScrobbleTime.log"
 
-type audirvanaImporterImpl struct {
+type audirvanaUpdaterImpl struct {
 	configpath internal.ConfigPath
 	tempPath   internal.TempPath
-	repo       *trackInfoRepositoryImpl
+	db         *gorm.DB
 }
 
-func NewAudirvanaImporter(i *do.Injector) (domain.AudirvanaImporter, error) {
-	return &audirvanaImporterImpl{
+func NewAudirvanaUpdater(i *do.Injector) (domain.AudirvanaUpdater, error) {
+	return &audirvanaUpdaterImpl{
 		configpath: do.MustInvoke[internal.ConfigPath](i),
 		tempPath:   do.MustInvoke[internal.TempPath](i),
-		repo:       do.MustInvoke[domain.TrackInfoRepository](i).(*trackInfoRepositoryImpl),
+		db:         do.MustInvoke[*gorm.DB](i),
 	}, nil
 }
 
-func (a *audirvanaImporterImpl) GetAllTracks(ctx context.Context) ([]response.TrackInfo, error) {
+func (a *audirvanaUpdaterImpl) Update(ctx context.Context) error {
 	dbPath, err := a.getTempDBPath()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Get last scrobble time
 	lastScrobbleTime, err := a.readLastScrobbleTime()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tracks, err := a.getScrobbleLog(ctx, dbPath, lastScrobbleTime)
-	if err != nil {
-		return nil, err
+	if err := a.updateCore(ctx, dbPath, lastScrobbleTime); err != nil {
+		return err
 	}
 
-	return tracks, nil
+	return nil
 }
 
-func (a *audirvanaImporterImpl) getTempDBPath() (string, error) {
+func (a *audirvanaUpdaterImpl) getTempDBPath() (string, error) {
 	audirvanaConfigPath := configdir.LocalConfig("Audirvana")
 	originalDBPath := filepath.Join(audirvanaConfigPath, "AudirvanaDatabase.sqlite")
 	tempDBPath := a.tempPath.GetJoinedPath("AudirvanaDatabase.sqlite")
@@ -80,7 +80,7 @@ func (a *audirvanaImporterImpl) getTempDBPath() (string, error) {
 	return tempDBPath, nil
 }
 
-func (a *audirvanaImporterImpl) readLastScrobbleTime() (string, error) {
+func (a *audirvanaUpdaterImpl) readLastScrobbleTime() (string, error) {
 	logPath := a.configpath.GetJoinedPath(LAST_SCROBBLE_TIME_LOG)
 	file, err := os.OpenFile(logPath, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -95,16 +95,16 @@ func (a *audirvanaImporterImpl) readLastScrobbleTime() (string, error) {
 	return lastScrobble, nil
 }
 
-func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath string, lastScrobbleTime string) ([]response.TrackInfo, error) {
+func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string, lastScrobbleTime string) error {
 	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?mode=ro", dbFilePath))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer db.Close()
 
 	query := `
 		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title,
-			   date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
+				date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
 		FROM TRACKS
 		JOIN ALBUMS ON ALBUMS.album_id = TRACKS.album_id
 		JOIN ALBUMS_ARTISTS ON ALBUMS_ARTISTS.album_id = ALBUMS.album_id
@@ -115,7 +115,7 @@ func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath s
 
 	rows, err := db.QueryContext(ctx, query, lastScrobbleTime)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer rows.Close()
 
@@ -124,26 +124,25 @@ func (a *audirvanaImporterImpl) getScrobbleLog(ctx context.Context, dbFilePath s
 		var track internal.TrackInfoDBSchema
 		var playedDate, playedTime string
 		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedDate, &playedTime); err != nil {
-			return nil, err
+			return err
 		}
 
 		track.PlayedAt, err = time.Parse("2006-01-02 15:04:05", fmt.Sprintf("%s %s", playedDate, playedTime))
 		if err != nil {
-			return nil, err
+			return err
 		}
+
+		track.ID = track.PlayedAt.Format(time.RFC3339)
 		newTracks = append(newTracks, track)
 	}
 
 	// Update local DB
-	if err := a.repo.Update(ctx, newTracks); err != nil {
-		return nil, err
+	if err := a.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoNothing: true,
+	}).Create(&newTracks).Error; err != nil {
+		return err
 	}
 
-	// Get all tracks from local DB
-	ret, err := a.repo.GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return ret, nil
+	return nil
 }
