@@ -1,8 +1,8 @@
 package internal
 
 import (
+	"github.com/glebarez/sqlite"
 	"github.com/samber/do"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 

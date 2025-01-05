@@ -17,11 +17,9 @@ import (
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
-const LAST_SCROBBLE_TIME_LOG = "lastScrobbleTime.log"
+const LAST_SCROBBLE_TIME_LOG = "last_scrobble_time.log"
 
 type audirvanaUpdaterImpl struct {
 	configpath internal.ConfigPath
@@ -96,7 +94,7 @@ func (a *audirvanaUpdaterImpl) readLastScrobbleTime() (string, error) {
 }
 
 func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string, lastScrobbleTime string) error {
-	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?mode=ro", dbFilePath))
+	db, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=ro", dbFilePath))
 	if err != nil {
 		return err
 	}
