@@ -1,13 +1,17 @@
-import { ApiError, handleApiError } from '@/lib/api/errors'
+import { ApiError } from '@/lib/api/errors'
+import { GetTrackInfo } from '@bindings/app/app'
 import { useQuery } from '@tanstack/react-query'
-import { GetTrackInfo } from '@wailsjs/go/app/App'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect } from 'react'
 
 export const useTrackListQuery = () => {
   const { data, error, isPending } = useQuery({
     queryKey: ['trackList'],
-    queryFn: async () => await handleApiError(async () => await GetTrackInfo())
+    queryFn: async () => {
+      const [data, error] = await GetTrackInfo()
+      if (error) throw error
+      return data
+    }
   })
 
   const confirm = useConfirm()

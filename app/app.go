@@ -2,6 +2,7 @@ package app
 
 import (
 	"audirvana-scrobbler/app/internal/usecase"
+	"audirvana-scrobbler/app/shared/customerr"
 	"audirvana-scrobbler/app/shared/response"
 	"context"
 
@@ -9,26 +10,15 @@ import (
 )
 
 type App struct {
-	ctx          context.Context
-	injector     *do.Injector
 	getTrackInfo usecase.GetTrackInfo
 }
 
 func NewApp(i *do.Injector) (*App, error) {
 	return &App{
-		injector:     i,
 		getTrackInfo: do.MustInvoke[usecase.GetTrackInfo](i),
 	}, nil
 }
 
-func (a *App) OnDomReady(ctx context.Context) {
-	a.ctx = ctx
-}
-
-func (a *App) Shutdown(ctx context.Context) {
-	a.injector.Shutdown()
-}
-
-func (a *App) GetTrackInfo() ([]response.TrackInfo, error) {
-	return a.getTrackInfo.Execute(a.ctx)
+func (a *App) GetTrackInfo(ctx context.Context) ([]response.TrackInfo, *customerr.ErrorResponse) {
+	return a.getTrackInfo.Execute(ctx)
 }

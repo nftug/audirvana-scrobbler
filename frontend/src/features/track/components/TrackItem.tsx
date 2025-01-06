@@ -1,11 +1,11 @@
 import { formatDateTime } from '@/lib/common/datetimeUtils'
 import { overflowEllipsisStyle } from '@/lib/layout/styles'
+import { TrackInfo } from '@bindings/app/shared/response'
 import { Delete, Edit } from '@mui/icons-material'
 import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '@mui/material'
-import { response } from '@wailsjs/go/models'
 
 type TrackItemProps = {
-  item: response.TrackInfo
+  item: TrackInfo
   onClickEdit: (itemId: string) => void
   onClickDelete: (itemId: string) => void
 }

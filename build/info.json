@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "0.1.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "0.1.0",
+			"CompanyName": "V-nyang",
+			"FileDescription": "Last.fm scrobbler for Audirvana.",
+			"LegalCopyright": "© 2025, V-nyang",
+			"ProductName": "Audirvana Scrobbler",
+			"Comments": ""
+		}
+	}
+}

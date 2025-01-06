@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@wailsjs': path.resolve(__dirname, './wailsjs')
+      '@bindings': path.resolve(__dirname, './bindings/audirvana-scrobbler')
     }
   }
 })

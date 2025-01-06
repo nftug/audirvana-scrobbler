@@ -18,8 +18,8 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
-      "@wailsjs/*": ["./wailsjs/*"]
+      "@bindings/*": ["./bindings/audirvana-scrobbler/*"]
     }
   },
-  "include": ["src", "wailsjs"]
+  "include": ["src", "bindings"]
 }

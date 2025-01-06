@@ -1,10 +1,10 @@
-build/bin
+bin/
 node_modules
 frontend/dist
-/build
 
 .VSCodeCounter/*
 cover.html
 cover.out
 
 package.json.md5
+.task/
