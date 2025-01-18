@@ -19,8 +19,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const LAST_SCROBBLE_TIME_LOG = "last_scrobble_time.log"
-
 type audirvanaUpdaterImpl struct {
 	configpath domain.ConfigPathProvider
 	db         *gorm.DB
