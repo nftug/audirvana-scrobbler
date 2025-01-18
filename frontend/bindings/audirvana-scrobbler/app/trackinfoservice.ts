@@ -23,3 +23,8 @@ export function SaveTrackInfo(id: string, form: bindings$0.TrackInfoForm): Promi
     let $resultPromise = $Call.ByID(1423142159, id, form) as any;
     return $resultPromise;
 }
+
+export function ScrobbleAll(): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(3577888866) as any;
+    return $resultPromise;
+}

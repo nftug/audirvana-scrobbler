@@ -25,8 +25,7 @@ func NewTrackInfoRepository(i *do.Injector) (domain.TrackInfoRepository, error) 
 func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]bindings.TrackInfo, error) {
 	var ret []internal.TrackInfoDBSchema
 
-	query := r.db.WithContext(ctx).Model(&internal.TrackInfoDBSchema{}).
-		Where("scrobbled_at IS NULL").Where("deleted_at IS NULL")
+	query := r.db.WithContext(ctx).Model(&internal.TrackInfoDBSchema{}).Where("scrobbled_at IS NULL")
 	if err := query.Order("played_at").Find(&ret).Error; err != nil {
 		return nil, err
 	}
@@ -59,6 +58,16 @@ func (r *trackInfoRepositoryImpl) Save(ctx context.Context, id string, form bind
 		Track:  form.Track,
 	}
 	err := r.db.WithContext(ctx).Model(&internal.TrackInfoDBSchema{ID: id}).Updates(col).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *trackInfoRepositoryImpl) MarkAsScrobbled(ctx context.Context, ids []string) error {
+	err := r.db.WithContext(ctx).Model(&internal.TrackInfoDBSchema{}).
+		Where("id IN ?", ids).
+		Update("scrobbled_at", time.Now().UTC()).Error
 	if err != nil {
 		return err
 	}
