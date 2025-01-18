@@ -6,7 +6,7 @@ import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '
 
 type TrackItemProps = {
   item: TrackInfo
-  onClickEdit: (itemId: string) => void
+  onClickEdit: (item: TrackInfo) => void
   onClickDelete: (itemId: string) => void
 }
 
@@ -36,12 +36,7 @@ const TrackItem = ({ item, onClickEdit, onClickDelete }: TrackItemProps) => {
       </CardContent>
 
       <CardActions>
-        <Button
-          size="small"
-          color="primary"
-          onClick={() => onClickEdit(item.id)}
-          startIcon={<Edit />}
-        >
+        <Button size="small" color="primary" onClick={() => onClickEdit(item)} startIcon={<Edit />}>
           Edit
         </Button>
         <Button

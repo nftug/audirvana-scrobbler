@@ -5,6 +5,7 @@ import (
 	"audirvana-scrobbler/app/domain"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -33,8 +34,8 @@ func (s *saveTrackInfoImpl) Execute(ctx context.Context, id string, form binding
 	if err := validator.New().Struct(form); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
 			errors = append(errors, bindings.ErrorData{
-				Field:   err.Field(),
-				Message: fmt.Sprintf("Field %s is %s", err.Field(), err.Tag()),
+				Field:   strings.ToLower(err.Field()),
+				Message: fmt.Sprintf("Validation error on %s: %s %s", err.Field(), err.Tag(), err.Param()),
 			})
 		}
 	}
