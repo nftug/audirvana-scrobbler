@@ -5,6 +5,7 @@ import (
 	"audirvana-scrobbler/app/domain"
 	"audirvana-scrobbler/app/infra/internal"
 	"context"
+	"time"
 
 	"github.com/samber/do"
 	"github.com/samber/lo"
@@ -34,4 +35,19 @@ func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]bindings.TrackI
 		return x.ToResponse()
 	})
 	return tracks, nil
+}
+
+func (r *trackInfoRepositoryImpl) GetLatestPlayedAt(ctx context.Context) (time.Time, error) {
+	var col internal.TrackInfoDBSchema
+
+	query := r.db.WithContext(ctx).Unscoped().Order("played_at desc")
+	if err := query.First(&col).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return time.Now().UTC(), nil
+		} else {
+			return time.Time{}, err
+		}
+	}
+
+	return col.PlayedAt, nil
 }

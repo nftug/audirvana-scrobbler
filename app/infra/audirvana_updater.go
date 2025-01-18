@@ -9,12 +9,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+	"strconv"
 	"time"
 
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
-	"github.com/samber/lo"
+	"github.com/soniakeys/meeus/v3/julian"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -24,12 +24,14 @@ const LAST_SCROBBLE_TIME_LOG = "last_scrobble_time.log"
 type audirvanaUpdaterImpl struct {
 	configpath domain.ConfigPathProvider
 	db         *gorm.DB
+	repo       domain.TrackInfoRepository
 }
 
 func NewAudirvanaUpdater(i *do.Injector) (domain.AudirvanaUpdater, error) {
 	return &audirvanaUpdaterImpl{
 		configpath: do.MustInvoke[domain.ConfigPathProvider](i),
 		db:         do.MustInvoke[*gorm.DB](i),
+		repo:       do.MustInvoke[domain.TrackInfoRepository](i),
 	}, nil
 }
 
@@ -49,13 +51,7 @@ func (a *audirvanaUpdaterImpl) Update(ctx context.Context) (err error) {
 		return err
 	}
 
-	// Get last scrobble time
-	lastScrobbleTime, err := a.readLastScrobbleTime()
-	if err != nil {
-		return err
-	}
-
-	if err := a.updateCore(ctx, dbPath, lastScrobbleTime); err != nil {
+	if err := a.updateCore(ctx, dbPath); err != nil {
 		return err
 	}
 
@@ -86,22 +82,12 @@ func (a *audirvanaUpdaterImpl) getCopiedDBPath(tempDirPath string) (string, erro
 	return destDBPath, nil
 }
 
-func (a *audirvanaUpdaterImpl) readLastScrobbleTime() (string, error) {
-	logPath := a.configpath.GetJoinedPath(LAST_SCROBBLE_TIME_LOG)
-	file, err := os.OpenFile(logPath, os.O_RDONLY|os.O_CREATE, 0644)
+func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string) error {
+	lastPlayedAt, err := a.repo.GetLatestPlayedAt(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to open last scrobble time log: %w", err)
+		return err
 	}
-	defer file.Close()
 
-	buf := make([]byte, 19)
-	n, _ := file.Read(buf)
-
-	lastScrobble := lo.Ternary(n == 0, "2459364.9074768517", strings.TrimSpace(string(buf[:n])))
-	return lastScrobble, nil
-}
-
-func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string, lastScrobbleTime string) error {
 	db, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=ro", dbFilePath))
 	if err != nil {
 		return err
@@ -109,8 +95,7 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	defer db.Close()
 
 	query := `
-		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title,
-			date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
+		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title, TRACKS.last_played_date
 		FROM TRACKS
 		JOIN ALBUMS ON ALBUMS.album_id = TRACKS.album_id
 		JOIN ALBUMS_ARTISTS ON ALBUMS_ARTISTS.album_id = ALBUMS.album_id
@@ -119,7 +104,7 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 		ORDER BY last_played_date ASC
 	`
 
-	rows, err := db.QueryContext(ctx, query, lastScrobbleTime)
+	rows, err := db.QueryContext(ctx, query, julian.TimeToJD(lastPlayedAt))
 	if err != nil {
 		return err
 	}
@@ -128,26 +113,26 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	var newTracks []internal.TrackInfoDBSchema
 	for rows.Next() {
 		var track internal.TrackInfoDBSchema
-		var playedDate, playedTime string
-		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedDate, &playedTime); err != nil {
+		var playedAt string
+		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedAt); err != nil {
 			return err
 		}
 
-		track.PlayedAt, err = time.Parse("2006-01-02 15:04:05", fmt.Sprintf("%s %s", playedDate, playedTime))
-		if err != nil {
-			return err
-		}
-
+		playedAtJd, _ := strconv.ParseFloat(playedAt, 64)
+		track.PlayedAt = julian.JDToTime(playedAtJd)
 		track.ID = track.PlayedAt.Format(time.RFC3339)
+
 		newTracks = append(newTracks, track)
 	}
 
 	// Update local DB
-	if err := a.db.WithContext(ctx).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
-		DoNothing: true,
-	}).Create(&newTracks).Error; err != nil {
-		return err
+	if len(newTracks) > 0 {
+		if err := a.db.WithContext(ctx).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			DoNothing: true,
+		}).Create(&newTracks).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil

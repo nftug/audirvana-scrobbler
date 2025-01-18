@@ -117,6 +117,12 @@ github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3/go.mod h1:A0bzQcvG
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/skeema/knownhosts v1.3.0 h1:AM+y0rI04VksttfwjkSTNQorvGqmwATnvnAHpSgc0LY=
 github.com/skeema/knownhosts v1.3.0/go.mod h1:sPINvnADmT/qYH1kfv+ePMmOBTH6Tbl7b5LvTDjFK7M=
+github.com/soniakeys/meeus/v3 v3.0.1 h1:inZIhWUeyumGoQ//CCZMI4qR2vPKCS6LbVPca2mDvqE=
+github.com/soniakeys/meeus/v3 v3.0.1/go.mod h1:G1tkqa+QcOyErSe7WqN0OnzVeLrvq9bQBoNb1IG+3n8=
+github.com/soniakeys/sexagesimal v1.0.0 h1:p4OW7ID1naq0+k0Sn/gvuS2hRgmEcuJrZeyyntOGLvU=
+github.com/soniakeys/sexagesimal v1.0.0/go.mod h1:/7psACvkUx/IZ1XX3HDdBci1Lz1ZObcjLX2MVVKI3rM=
+github.com/soniakeys/unit v1.0.0 h1:UMIgu6dxDQaK6tYaQV6dJn5oovB6035KRxCS0O7Jiec=
+github.com/soniakeys/unit v1.0.0/go.mod h1:z93o2tO/hJA2+Wr1Fozkt3jK4LyDwTfRCjyRFLAa4zk=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

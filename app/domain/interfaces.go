@@ -3,6 +3,7 @@ package domain
 import (
 	"audirvana-scrobbler/app/bindings"
 	"context"
+	"time"
 )
 
 type AudirvanaUpdater interface {
@@ -11,6 +12,7 @@ type AudirvanaUpdater interface {
 
 type TrackInfoRepository interface {
 	GetAll(ctx context.Context) ([]bindings.TrackInfo, error)
+	GetLatestPlayedAt(ctx context.Context) (time.Time, error)
 	// Save(ctx context.Context, track response.TrackInfo) error
 }
 
