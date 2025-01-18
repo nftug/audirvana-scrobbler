@@ -10,6 +10,11 @@ import {Call as $Call} from "@wailsio/runtime";
 import * as bindings$0 from "./bindings/models.js";
 
 export function GetTrackInfo(): Promise<[bindings$0.TrackInfo[] | null, bindings$0.ErrorResponse | null]> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(3691253246) as any;
+    let $resultPromise = $Call.ByID(4142243114) as any;
+    return $resultPromise;
+}
+
+export function SaveTrackInfo(id: string, form: bindings$0.TrackInfoForm): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1423142159, id, form) as any;
     return $resultPromise;
 }

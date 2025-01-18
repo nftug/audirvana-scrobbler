@@ -7,3 +7,9 @@ type TrackInfo struct {
 	Track    string `json:"track"`
 	PlayedAt string `json:"playedAt"`
 }
+
+type TrackInfoForm struct {
+	Artist string `json:"artist" validate:"required"`
+	Album  string `json:"album" validate:"required"`
+	Track  string `json:"track" validate:"required"`
+}

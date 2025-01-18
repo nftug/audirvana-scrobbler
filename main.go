@@ -14,7 +14,7 @@ var assets embed.FS
 func main() {
 	// Create an instance of the app structure
 	injector := app.BuildInjector()
-	service := do.MustInvoke[*app.TrackListService](injector)
+	service := do.MustInvoke[*app.TrackInfoService](injector)
 
 	app := application.New(application.Options{
 		Name:        "Audirvana Scrobbler",

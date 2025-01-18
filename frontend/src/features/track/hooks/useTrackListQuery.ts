@@ -1,5 +1,5 @@
 import { ErrorResponse, TrackInfo } from '@bindings/app/bindings'
-import { GetTrackInfo } from '@bindings/app/tracklistservice'
+import { GetTrackInfo } from '@bindings/app/trackinfoservice'
 import { useQuery } from '@tanstack/react-query'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect } from 'react'
@@ -20,7 +20,7 @@ export const useTrackListQuery = () => {
     if (!error) return
     confirm({
       title: 'Error',
-      description: error.data?.message,
+      description: error.data?.at(0)?.message,
       hideCancelButton: true
     })
   }, [error])

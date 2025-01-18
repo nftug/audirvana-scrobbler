@@ -20,7 +20,7 @@ export interface ErrorData {
 
 export interface ErrorResponse {
     "code": ErrorCode;
-    "data": ErrorData | null;
+    "data": ErrorData[] | null;
 }
 
 export interface TrackInfo {
@@ -29,4 +29,10 @@ export interface TrackInfo {
     "album": string;
     "track": string;
     "playedAt": string;
+}
+
+export interface TrackInfoForm {
+    "artist": string;
+    "album": string;
+    "track": string;
 }

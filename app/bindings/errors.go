@@ -1,13 +1,12 @@
 package bindings
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
 type ErrorResponse struct {
-	Code ErrorCode  `json:"code"`
-	Data *ErrorData `json:"data"`
+	Code ErrorCode   `json:"code"`
+	Data []ErrorData `json:"data"`
 }
 
 type ErrorData struct {
@@ -16,21 +15,24 @@ type ErrorData struct {
 }
 
 func (e *ErrorResponse) Error() string {
-	errJSON, _ := json.Marshal(e.Data.Message)
-	return string(errJSON)
+	if len(e.Data) == 0 {
+		return string(e.Code)
+	} else {
+		return e.Data[0].Message
+	}
 }
 
 func NewValidationError(field string, format string, a ...any) *ErrorResponse {
 	return &ErrorResponse{
 		Code: ValidationError,
-		Data: &ErrorData{field, fmt.Sprintf(format, a...)},
+		Data: []ErrorData{{field, fmt.Sprintf(format, a...)}},
 	}
 }
 
 func NewInternalError(format string, a ...any) *ErrorResponse {
 	return &ErrorResponse{
 		Code: InternalError,
-		Data: &ErrorData{"error", fmt.Sprintf(format, a...)},
+		Data: []ErrorData{{"error", fmt.Sprintf(format, a...)}},
 	}
 }
 
