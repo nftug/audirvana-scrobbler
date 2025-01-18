@@ -1,22 +1,18 @@
 package internal
 
 import (
+	"audirvana-scrobbler/app/domain"
 	"path/filepath"
 
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
 )
 
-type ConfigPath interface {
-	GetJoinedPath(filename string) string
-	GetLocalPath() string
-}
-
 type configPathImpl struct {
 	localPath string
 }
 
-func NewConfigPath(i *do.Injector) (ConfigPath, error) {
+func NewConfigPath(i *do.Injector) (domain.ConfigPathProvider, error) {
 	configPath := configdir.LocalConfig("AudirvanaScrobbler")
 	if err := configdir.MakePath(configPath); err != nil {
 		return nil, err

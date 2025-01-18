@@ -22,21 +22,29 @@ import (
 const LAST_SCROBBLE_TIME_LOG = "last_scrobble_time.log"
 
 type audirvanaUpdaterImpl struct {
-	configpath internal.ConfigPath
-	tempPath   internal.TempPath
+	configpath domain.ConfigPathProvider
 	db         *gorm.DB
 }
 
 func NewAudirvanaUpdater(i *do.Injector) (domain.AudirvanaUpdater, error) {
 	return &audirvanaUpdaterImpl{
-		configpath: do.MustInvoke[internal.ConfigPath](i),
-		tempPath:   do.MustInvoke[internal.TempPath](i),
+		configpath: do.MustInvoke[domain.ConfigPathProvider](i),
 		db:         do.MustInvoke[*gorm.DB](i),
 	}, nil
 }
 
-func (a *audirvanaUpdaterImpl) Update(ctx context.Context) error {
-	dbPath, err := a.getTempDBPath()
+func (a *audirvanaUpdaterImpl) Update(ctx context.Context) (err error) {
+	tempDirPath, err := os.MkdirTemp("", "audirvana-scrobbler")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err = os.RemoveAll(tempDirPath); err != nil {
+			err = fmt.Errorf("error deleting temp directory: %w", err)
+		}
+	}()
+
+	dbPath, err := a.getCopiedDBPath(tempDirPath)
 	if err != nil {
 		return err
 	}
@@ -54,10 +62,10 @@ func (a *audirvanaUpdaterImpl) Update(ctx context.Context) error {
 	return nil
 }
 
-func (a *audirvanaUpdaterImpl) getTempDBPath() (string, error) {
+func (a *audirvanaUpdaterImpl) getCopiedDBPath(tempDirPath string) (string, error) {
 	audirvanaConfigPath := configdir.LocalConfig("Audirvana")
 	originalDBPath := filepath.Join(audirvanaConfigPath, "AudirvanaDatabase.sqlite")
-	tempDBPath := a.tempPath.GetJoinedPath("AudirvanaDatabase.sqlite")
+	destDBPath := filepath.Join(tempDirPath, "AudirvanaDatabase.sqlite")
 
 	src, err := os.Open(originalDBPath)
 	if err != nil {
@@ -65,7 +73,7 @@ func (a *audirvanaUpdaterImpl) getTempDBPath() (string, error) {
 	}
 	defer src.Close()
 
-	dst, err := os.Create(tempDBPath)
+	dst, err := os.Create(destDBPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create local DB file: %w", err)
 	}
@@ -75,7 +83,7 @@ func (a *audirvanaUpdaterImpl) getTempDBPath() (string, error) {
 		return "", fmt.Errorf("failed to copy DB file to local: %w", err)
 	}
 
-	return tempDBPath, nil
+	return destDBPath, nil
 }
 
 func (a *audirvanaUpdaterImpl) readLastScrobbleTime() (string, error) {
@@ -98,14 +106,11 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	if err != nil {
 		return err
 	}
-	defer func() {
-		db.Close()
-		a.tempPath.Shutdown()
-	}()
+	defer db.Close()
 
 	query := `
 		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title,
-				date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
+			date(TRACKS.last_played_date) AS date, time(TRACKS.last_played_date) AS time
 		FROM TRACKS
 		JOIN ALBUMS ON ALBUMS.album_id = TRACKS.album_id
 		JOIN ALBUMS_ARTISTS ON ALBUMS_ARTISTS.album_id = ALBUMS.album_id

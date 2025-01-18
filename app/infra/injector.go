@@ -8,7 +8,6 @@ import (
 
 func Inject(i *do.Injector) {
 	do.Provide(i, internal.NewConfigPath)
-	do.Provide(i, internal.NewTempPath)
 	do.Provide(i, internal.NewDB)
 
 	do.Provide(i, NewAudirvanaUpdater)
