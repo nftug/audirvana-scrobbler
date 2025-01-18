@@ -58,7 +58,16 @@ func (r *trackInfoRepositoryImpl) Save(ctx context.Context, id string, form bind
 		Album:  form.Album,
 		Track:  form.Track,
 	}
-	if err := r.db.Model(&internal.TrackInfoDBSchema{ID: id}).Updates(col).Error; err != nil {
+	err := r.db.WithContext(ctx).Model(&internal.TrackInfoDBSchema{ID: id}).Updates(col).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *trackInfoRepositoryImpl) Delete(ctx context.Context, id string) error {
+	err := r.db.WithContext(ctx).Delete(&internal.TrackInfoDBSchema{ID: id}).Error
+	if err != nil {
 		return err
 	}
 	return nil

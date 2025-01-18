@@ -6,7 +6,7 @@ import TrackItem from './TrackItem'
 
 type TrackListProps = {
   onClickEdit: (item: TrackInfo) => void
-  onClickDelete: (itemId: string) => void
+  onClickDelete: (item: TrackInfo) => void
   sx?: SxProps<Theme>
 }
 

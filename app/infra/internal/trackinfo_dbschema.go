@@ -3,6 +3,8 @@ package internal
 import (
 	"audirvana-scrobbler/app/bindings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type TrackInfoDBSchema struct {
@@ -12,7 +14,7 @@ type TrackInfoDBSchema struct {
 	Track       string     `gorm:"not null"`
 	PlayedAt    time.Time  `gorm:"not null"`
 	ScrobbledAt *time.Time `gorm:"null;default:null"`
-	DeletedAt   *time.Time `gorm:"null;default:null"`
+	DeletedAt   gorm.DeletedAt
 }
 
 func (TrackInfoDBSchema) TableName() string {

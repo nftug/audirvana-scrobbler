@@ -7,7 +7,7 @@ import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '
 type TrackItemProps = {
   item: TrackInfo
   onClickEdit: (item: TrackInfo) => void
-  onClickDelete: (itemId: string) => void
+  onClickDelete: (item: TrackInfo) => void
 }
 
 const TrackItem = ({ item, onClickEdit, onClickDelete }: TrackItemProps) => {
@@ -42,7 +42,7 @@ const TrackItem = ({ item, onClickEdit, onClickDelete }: TrackItemProps) => {
         <Button
           size="small"
           color="error"
-          onClick={() => onClickDelete(item.id)}
+          onClick={() => onClickDelete(item)}
           startIcon={<Delete />}
         >
           Delete
