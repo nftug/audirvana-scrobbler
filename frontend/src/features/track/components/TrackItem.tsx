@@ -1,6 +1,6 @@
 import { formatDateTime } from '@/lib/common/datetimeUtils'
 import { overflowEllipsisStyle } from '@/lib/layout/styles'
-import { TrackInfo } from '@bindings/app/shared/response'
+import { TrackInfo } from '@bindings/app/bindings'
 import { Delete, Edit } from '@mui/icons-material'
 import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '@mui/material'
 

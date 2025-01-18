@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"audirvana-scrobbler/app/shared/response"
+	"audirvana-scrobbler/app/bindings"
 	"time"
 )
 
@@ -11,15 +11,16 @@ type TrackInfoDBSchema struct {
 	Album       string     `gorm:"not null"`
 	Track       string     `gorm:"not null"`
 	PlayedAt    time.Time  `gorm:"not null"`
-	ScrobbledAt *time.Time `gorm:"type:TIMESTAMP;null;default:null"`
+	ScrobbledAt *time.Time `gorm:"null;default:null"`
+	DeletedAt   *time.Time `gorm:"null;default:null"`
 }
 
 func (TrackInfoDBSchema) TableName() string {
 	return "track_info"
 }
 
-func (t *TrackInfoDBSchema) ToResponse() response.TrackInfo {
-	return response.TrackInfo{
+func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfo {
+	return bindings.TrackInfo{
 		ID:       t.ID,
 		Artist:   t.Artist,
 		Album:    t.Album,

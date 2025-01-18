@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"audirvana-scrobbler/app/shared/response"
+	"audirvana-scrobbler/app/bindings"
 	"context"
 )
 
@@ -10,6 +10,6 @@ type AudirvanaUpdater interface {
 }
 
 type TrackInfoRepository interface {
-	GetAll(ctx context.Context) ([]response.TrackInfo, error)
+	GetAll(ctx context.Context) ([]bindings.TrackInfo, error)
 	// Save(ctx context.Context, track response.TrackInfo) error
 }

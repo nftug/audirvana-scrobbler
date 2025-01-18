@@ -1,16 +1,16 @@
-import { ApiError } from '@/lib/api/errors'
-import { GetTrackInfo } from '@bindings/app/app'
+import { ErrorResponse, TrackInfo } from '@bindings/app/bindings'
+import { GetTrackInfo } from '@bindings/app/tracklistservice'
 import { useQuery } from '@tanstack/react-query'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect } from 'react'
 
 export const useTrackListQuery = () => {
-  const { data, error, isPending } = useQuery({
+  const { data, error, isPending } = useQuery<TrackInfo[], ErrorResponse>({
     queryKey: ['trackList'],
     queryFn: async () => {
       const [data, error] = await GetTrackInfo()
       if (error) throw error
-      return data
+      return data!
     }
   })
 
@@ -18,8 +18,11 @@ export const useTrackListQuery = () => {
 
   useEffect(() => {
     if (!error) return
-    const message = error instanceof ApiError ? error.data?.message : error.message
-    confirm({ title: 'Error', description: message, hideCancelButton: true })
+    confirm({
+      title: 'Error',
+      description: error.data?.message,
+      hideCancelButton: true
+    })
   }, [error])
 
   return { data, error, isPending }

@@ -1,4 +1,4 @@
-package response
+package bindings
 
 type TrackInfo struct {
 	ID       string `json:"id"`

@@ -1,8 +1,8 @@
 package infra
 
 import (
-	"audirvana-scrobbler/app/internal/domain"
-	"audirvana-scrobbler/app/internal/infra/internal"
+	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/infra/internal"
 	"context"
 	"database/sql"
 	"fmt"
@@ -98,7 +98,10 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		db.Close()
+		a.tempPath.Shutdown()
+	}()
 
 	query := `
 		SELECT ARTISTS.name AS artist, ALBUMS.title AS album, TRACKS.title,

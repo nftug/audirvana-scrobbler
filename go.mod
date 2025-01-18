@@ -70,5 +70,3 @@ require (
 	modernc.org/sqlite v1.34.4 // indirect
 	modernc.org/strutil v1.2.1 // indirect
 )
-
-// replace github.com/wailsapp/wails/v2 v2.9.2 => /Users/nftug/go/pkg/mod

@@ -1,9 +1,9 @@
 package infra
 
 import (
-	"audirvana-scrobbler/app/internal/domain"
-	"audirvana-scrobbler/app/internal/infra/internal"
-	"audirvana-scrobbler/app/shared/response"
+	"audirvana-scrobbler/app/bindings"
+	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/infra/internal"
 	"context"
 
 	"github.com/samber/do"
@@ -21,15 +21,16 @@ func NewTrackInfoRepository(i *do.Injector) (domain.TrackInfoRepository, error) 
 	}, nil
 }
 
-func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]response.TrackInfo, error) {
+func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]bindings.TrackInfo, error) {
 	var ret []internal.TrackInfoDBSchema
 
-	query := r.db.WithContext(ctx).Where("scrobbled_at IS NULL")
+	query := r.db.WithContext(ctx).
+		Where("scrobbled_at IS NULL").Where("deleted_at IS NULL")
 	if err := query.Order("played_at").Find(&ret).Error; err != nil {
 		return nil, err
 	}
 
-	tracks := lo.Map(ret, func(x internal.TrackInfoDBSchema, _ int) response.TrackInfo {
+	tracks := lo.Map(ret, func(x internal.TrackInfoDBSchema, _ int) bindings.TrackInfo {
 		return x.ToResponse()
 	})
 	return tracks, nil

@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"audirvana-scrobbler/app/internal/infra/internal"
+	"audirvana-scrobbler/app/infra/internal"
 
 	"github.com/samber/do"
 )

@@ -1,8 +1,8 @@
 package app
 
 import (
-	"audirvana-scrobbler/app/internal/infra"
-	"audirvana-scrobbler/app/internal/usecase"
+	"audirvana-scrobbler/app/infra"
+	"audirvana-scrobbler/app/usecase"
 
 	"github.com/samber/do"
 )

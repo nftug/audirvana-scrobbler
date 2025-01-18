@@ -12,3 +12,21 @@ export enum ErrorCode {
     NotFoundError = "NotFound",
     InternalError = "InternalError",
 };
+
+export interface ErrorData {
+    "field": string;
+    "message": string;
+}
+
+export interface ErrorResponse {
+    "code": ErrorCode;
+    "data": ErrorData | null;
+}
+
+export interface TrackInfo {
+    "id": string;
+    "artist": string;
+    "album": string;
+    "track": string;
+    "playedAt": string;
+}

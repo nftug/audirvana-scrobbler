@@ -13,8 +13,8 @@ var assets embed.FS
 
 func main() {
 	// Create an instance of the app structure
-	i := app.BuildInjector()
-	service := do.MustInvoke[*app.App](i)
+	injector := app.BuildInjector()
+	service := do.MustInvoke[*app.TrackListService](injector)
 
 	app := application.New(application.Options{
 		Name:        "Audirvana Scrobbler",
@@ -29,7 +29,6 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
 		},
-		OnShutdown: func() { i.Shutdown() },
 	})
 
 	app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
@@ -37,11 +36,14 @@ func main() {
 		Width:  1024,
 		Height: 768,
 		URL:    "/",
+		ShouldClose: func(window *application.WebviewWindow) bool {
+			// window.Hide()
+			window.Minimise()
+			return false
+		},
 	})
 
-	err := app.Run()
-
-	if err != nil {
+	if err := app.Run(); err != nil {
 		println("Error:", err.Error())
 	}
 }

@@ -1,9 +1,8 @@
 package usecase
 
 import (
-	"audirvana-scrobbler/app/internal/domain"
-	"audirvana-scrobbler/app/shared/customerr"
-	"audirvana-scrobbler/app/shared/response"
+	"audirvana-scrobbler/app/bindings"
+	"audirvana-scrobbler/app/domain"
 	"context"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 )
 
 type GetTrackInfo interface {
-	Execute(ctx context.Context) ([]response.TrackInfo, *customerr.ErrorResponse)
+	Execute(ctx context.Context) ([]bindings.TrackInfo, *bindings.ErrorResponse)
 }
 
 type getTrackInfoImpl struct {
@@ -26,17 +25,17 @@ func NewGetTrackInfo(i *do.Injector) (GetTrackInfo, error) {
 	}, nil
 }
 
-func (g *getTrackInfoImpl) Execute(ctx context.Context) ([]response.TrackInfo, *customerr.ErrorResponse) {
+func (g *getTrackInfoImpl) Execute(ctx context.Context) ([]bindings.TrackInfo, *bindings.ErrorResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if err := g.updater.Update(ctx); err != nil {
-		return nil, customerr.NewInternalError("Error while updating scrobble log: %v", err.Error())
+		return nil, bindings.NewInternalError("Error while updating scrobble log: %v", err.Error())
 	}
 
 	result, err := g.repo.GetAll(ctx)
 	if err != nil {
-		return nil, customerr.NewInternalError("Error while getting scrobble log: %v", err.Error())
+		return nil, bindings.NewInternalError("Error while getting scrobble log: %v", err.Error())
 	}
 
 	return result, nil

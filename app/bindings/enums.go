@@ -1,4 +1,4 @@
-package enums
+package bindings
 
 type ErrorCode string
 

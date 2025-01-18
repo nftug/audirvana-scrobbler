@@ -1,14 +1,13 @@
-package customerr
+package bindings
 
 import (
-	"audirvana-scrobbler/app/shared/enums"
 	"encoding/json"
 	"fmt"
 )
 
 type ErrorResponse struct {
-	Code enums.ErrorCode `json:"code"`
-	Data *ErrorData      `json:"data"`
+	Code ErrorCode  `json:"code"`
+	Data *ErrorData `json:"data"`
 }
 
 type ErrorData struct {
@@ -23,18 +22,18 @@ func (e *ErrorResponse) Error() string {
 
 func NewValidationError(field string, format string, a ...any) *ErrorResponse {
 	return &ErrorResponse{
-		Code: enums.ValidationError,
+		Code: ValidationError,
 		Data: &ErrorData{field, fmt.Sprintf(format, a...)},
 	}
 }
 
 func NewInternalError(format string, a ...any) *ErrorResponse {
 	return &ErrorResponse{
-		Code: enums.InternalError,
+		Code: InternalError,
 		Data: &ErrorData{"error", fmt.Sprintf(format, a...)},
 	}
 }
 
 func NewNotFoundError() *ErrorResponse {
-	return &ErrorResponse{Code: enums.NotFoundError}
+	return &ErrorResponse{Code: NotFoundError}
 }
