@@ -20,8 +20,7 @@ export const useTrackEditForm = ({ item, onSuccess, dialogOpened }: UseTrackInfo
   const form = useForm({ resolver: yupResolver(trackInfoFieldSchema), mode: 'onChange' })
 
   useEffect(() => {
-    form.reset(item ? { ...item } : trackInfoFieldSchema.getDefault())
-    console.log(item)
+    form.reset(item)
   }, [form, item, dialogOpened])
 
   const mutation = useMutation({

@@ -16,7 +16,6 @@ type TrackInfoService struct {
 }
 
 func NewApp(i *do.Injector) (*TrackInfoService, error) {
-	// build injector
 	return &TrackInfoService{
 		getTrackInfo:    do.MustInvoke[usecase.GetTrackInfo](i),
 		saveTrackInfo:   do.MustInvoke[usecase.SaveTrackInfo](i),

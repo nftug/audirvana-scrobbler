@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/kirsle/configdir"
@@ -111,13 +110,11 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	var newTracks []internal.TrackInfoDBSchema
 	for rows.Next() {
 		var track internal.TrackInfoDBSchema
-		var playedAt string
+		var playedAt float64
 		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedAt); err != nil {
 			return err
 		}
-
-		playedAtJd, _ := strconv.ParseFloat(playedAt, 64)
-		track.PlayedAt = julian.JDToTime(playedAtJd)
+		track.PlayedAt = julian.JDToTime(playedAt)
 		track.ID = track.PlayedAt.Format(time.RFC3339)
 
 		newTracks = append(newTracks, track)
