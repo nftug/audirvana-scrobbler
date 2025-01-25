@@ -5,12 +5,11 @@ import { useTrackListQuery } from '../hooks/useTrackListQuery'
 import TrackItem from './TrackItem'
 
 type TrackListProps = {
-  onClickEdit: (item: TrackInfo) => void
   onClickDelete: (item: TrackInfo) => void
   sx?: SxProps<Theme>
 }
 
-const TrackList = ({ onClickEdit, onClickDelete, sx }: TrackListProps) => {
+const TrackList = ({ onClickDelete, sx }: TrackListProps) => {
   const { data, isPending } = useTrackListQuery()
 
   return (
@@ -33,7 +32,7 @@ const TrackList = ({ onClickEdit, onClickDelete, sx }: TrackListProps) => {
       ) : (
         data.map((item) => (
           <ListItem key={item.id}>
-            <TrackItem item={item} onClickEdit={onClickEdit} onClickDelete={onClickDelete} />
+            <TrackItem item={item} onClickDelete={onClickDelete} />
           </ListItem>
         ))
       )}

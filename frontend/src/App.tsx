@@ -8,6 +8,7 @@ import { Box, createTheme, CssBaseline, ThemeProvider, Toolbar } from '@mui/mate
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfirmProvider } from 'material-ui-confirm'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import TrackEditModal from './features/track/components/TrackEditModal'
 
 const App: React.FC = () => {
   const theme = createTheme({ colorSchemes: { dark: true } })
@@ -25,6 +26,8 @@ const App: React.FC = () => {
           </HeaderProvider>
 
           <QueryClientProvider client={queryClient}>
+            <TrackEditModal.Root />
+
             <Box component="main">
               <Toolbar />
               <Routes>

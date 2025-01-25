@@ -11,17 +11,17 @@ import {
   IconButton
 } from '@mui/material'
 import { useConfirm } from 'material-ui-confirm'
+import { createCallable } from 'react-call'
 import { FormProvider } from 'react-hook-form'
 import { useTrackEditForm } from '../hooks/useTrackEditForm'
 
 interface TrackEditModalProps {
   item: TrackInfo | undefined
-  open: boolean
-  onClose: () => void
 }
 
-const TrackEditModal = ({ item, open, onClose }: TrackEditModalProps) => {
-  const { form, mutation } = useTrackEditForm({ item, onSuccess: onClose, dialogOpened: open })
+const TrackEditModal = createCallable<TrackEditModalProps>(({ call, item }) => {
+  const [open, closeDialog] = [!call.ended, call.end]
+  const { form, mutation } = useTrackEditForm({ item, onSuccess: () => call.end() })
   const confirm = useConfirm()
 
   const handleClose = async (_?: object, reason?: 'backdropClick' | 'escapeKeyDown') => {
@@ -33,7 +33,7 @@ const TrackEditModal = ({ item, open, onClose }: TrackEditModalProps) => {
         return
       }
     }
-    onClose()
+    closeDialog()
   }
 
   const onReset = (e: React.FormEvent) => {
@@ -88,6 +88,6 @@ const TrackEditModal = ({ item, open, onClose }: TrackEditModalProps) => {
       </Dialog>
     </FormProvider>
   )
-}
+}, 500)
 
 export default TrackEditModal

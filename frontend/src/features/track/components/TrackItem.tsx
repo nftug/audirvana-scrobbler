@@ -3,14 +3,14 @@ import { overflowEllipsisStyle } from '@/lib/layout/styles'
 import { TrackInfo } from '@bindings/app/bindings'
 import { Delete, Edit } from '@mui/icons-material'
 import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '@mui/material'
+import TrackEditModal from './TrackEditModal'
 
 type TrackItemProps = {
   item: TrackInfo
-  onClickEdit: (item: TrackInfo) => void
   onClickDelete: (item: TrackInfo) => void
 }
 
-const TrackItem = ({ item, onClickEdit, onClickDelete }: TrackItemProps) => {
+const TrackItem = ({ item, onClickDelete }: TrackItemProps) => {
   return (
     <Card sx={{ marginBottom: '10px', width: 1 }}>
       <CardContent>
@@ -36,7 +36,12 @@ const TrackItem = ({ item, onClickEdit, onClickDelete }: TrackItemProps) => {
       </CardContent>
 
       <CardActions>
-        <Button size="small" color="primary" onClick={() => onClickEdit(item)} startIcon={<Edit />}>
+        <Button
+          size="small"
+          color="primary"
+          onClick={() => TrackEditModal.call({ item })}
+          startIcon={<Edit />}
+        >
           Edit
         </Button>
         <Button
