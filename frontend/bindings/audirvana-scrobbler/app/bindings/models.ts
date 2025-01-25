@@ -23,16 +23,16 @@ export interface ErrorResponse {
     "data": ErrorData[] | null;
 }
 
-export interface TrackInfo {
+export interface TrackInfoForm {
+    "artist": string;
+    "album": string;
+    "track": string;
+}
+
+export interface TrackInfoResponse {
     "id": string;
     "artist": string;
     "album": string;
     "track": string;
     "playedAt": string;
-}
-
-export interface TrackInfoForm {
-    "artist": string;
-    "album": string;
-    "track": string;
 }

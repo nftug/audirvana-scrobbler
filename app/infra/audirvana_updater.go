@@ -13,21 +13,18 @@ import (
 
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
+	"github.com/samber/lo"
 	"github.com/soniakeys/meeus/v3/julian"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type audirvanaUpdaterImpl struct {
 	configpath domain.ConfigPathProvider
-	db         *gorm.DB
 	repo       domain.TrackInfoRepository
 }
 
 func NewAudirvanaUpdater(i *do.Injector) (domain.AudirvanaUpdater, error) {
 	return &audirvanaUpdaterImpl{
 		configpath: do.MustInvoke[domain.ConfigPathProvider](i),
-		db:         do.MustInvoke[*gorm.DB](i),
 		repo:       do.MustInvoke[domain.TrackInfoRepository](i),
 	}, nil
 }
@@ -116,18 +113,13 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 		}
 		track.PlayedAt = julian.JDToTime(playedAt)
 		track.ID = track.PlayedAt.Format(time.RFC3339)
-
 		newTracks = append(newTracks, track)
 	}
 
-	// Update local DB
-	if len(newTracks) > 0 {
-		if err := a.db.WithContext(ctx).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoNothing: true,
-		}).Create(&newTracks).Error; err != nil {
-			return err
-		}
+	newTracksEntity :=
+		lo.Map(newTracks, func(t internal.TrackInfoDBSchema, _ int) domain.TrackInfo { return *t.ToEntity() })
+	if err := a.repo.UpdateRange(ctx, newTracksEntity); err != nil {
+		return err
 	}
 
 	return nil

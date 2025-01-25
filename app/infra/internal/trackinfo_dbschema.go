@@ -2,6 +2,7 @@ package internal
 
 import (
 	"audirvana-scrobbler/app/bindings"
+	"audirvana-scrobbler/app/domain"
 	"time"
 
 	"gorm.io/gorm"
@@ -21,12 +22,16 @@ func (TrackInfoDBSchema) TableName() string {
 	return "track_info"
 }
 
-func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfo {
-	return bindings.TrackInfo{
+func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
+	return bindings.TrackInfoResponse{
 		ID:       t.ID,
 		Artist:   t.Artist,
 		Album:    t.Album,
 		Track:    t.Track,
 		PlayedAt: t.PlayedAt.Format(time.RFC3339),
 	}
+}
+
+func (t *TrackInfoDBSchema) ToEntity() *domain.TrackInfo {
+	return domain.ReconstructTrackInfo(t.ID, t.Artist, t.Album, t.Track, t.PlayedAt, t.ScrobbledAt)
 }

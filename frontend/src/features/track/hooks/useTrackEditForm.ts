@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorResponse, TrackInfo, TrackInfoForm } from '@bindings/app/bindings'
+import { ErrorCode, ErrorResponse, TrackInfoForm, TrackInfoResponse } from '@bindings/app/bindings'
 import { SaveTrackInfo } from '@bindings/app/trackinfoservice'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { trackInfoFieldSchema } from '../trackInfoFieldSchema'
 
 interface UseTrackInfoFormOptions {
-  item: TrackInfo | undefined
+  item: TrackInfoResponse | undefined
   onSuccess: () => void
   dialogOpened?: boolean
 }

@@ -24,7 +24,7 @@ func NewApp(i *do.Injector) (*TrackInfoService, error) {
 	}, nil
 }
 
-func (t *TrackInfoService) GetTrackInfo(ctx context.Context) ([]bindings.TrackInfo, *bindings.ErrorResponse) {
+func (t *TrackInfoService) GetTrackInfo(ctx context.Context) ([]bindings.TrackInfoResponse, *bindings.ErrorResponse) {
 	return t.getTrackInfo.Execute(ctx)
 }
 

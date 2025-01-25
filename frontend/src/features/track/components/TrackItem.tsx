@@ -1,13 +1,13 @@
 import { formatDateTime } from '@/lib/common/datetimeUtils'
 import { overflowEllipsisStyle } from '@/lib/layout/styles'
-import { TrackInfo } from '@bindings/app/bindings'
+import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Delete, Edit } from '@mui/icons-material'
 import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '@mui/material'
 import TrackEditModal from './TrackEditModal'
 
 type TrackItemProps = {
-  item: TrackInfo
-  onClickDelete: (item: TrackInfo) => void
+  item: TrackInfoResponse
+  onClickDelete: (item: TrackInfoResponse) => void
 }
 
 const TrackItem = ({ item, onClickDelete }: TrackItemProps) => {

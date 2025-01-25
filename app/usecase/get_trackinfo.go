@@ -10,7 +10,7 @@ import (
 )
 
 type GetTrackInfo interface {
-	Execute(ctx context.Context) ([]bindings.TrackInfo, *bindings.ErrorResponse)
+	Execute(ctx context.Context) ([]bindings.TrackInfoResponse, *bindings.ErrorResponse)
 }
 
 type getTrackInfoImpl struct {
@@ -25,7 +25,7 @@ func NewGetTrackInfo(i *do.Injector) (GetTrackInfo, error) {
 	}, nil
 }
 
-func (g *getTrackInfoImpl) Execute(ctx context.Context) ([]bindings.TrackInfo, *bindings.ErrorResponse) {
+func (g *getTrackInfoImpl) Execute(ctx context.Context) ([]bindings.TrackInfoResponse, *bindings.ErrorResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 

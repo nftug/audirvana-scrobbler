@@ -1,11 +1,11 @@
-import { TrackInfo } from '@bindings/app/bindings'
+import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Theme } from '@emotion/react'
 import { Box, CircularProgress, List, ListItem, Stack, SxProps, Typography } from '@mui/material'
 import { useTrackListQuery } from '../hooks/useTrackListQuery'
 import TrackItem from './TrackItem'
 
 type TrackListProps = {
-  onClickDelete: (item: TrackInfo) => void
+  onClickDelete: (item: TrackInfoResponse) => void
   sx?: SxProps<Theme>
 }
 

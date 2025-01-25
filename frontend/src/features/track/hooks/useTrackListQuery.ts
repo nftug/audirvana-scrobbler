@@ -1,11 +1,11 @@
-import { ErrorResponse, TrackInfo } from '@bindings/app/bindings'
+import { ErrorResponse, TrackInfoResponse } from '@bindings/app/bindings'
 import { GetTrackInfo } from '@bindings/app/trackinfoservice'
 import { useQuery } from '@tanstack/react-query'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect } from 'react'
 
 export const useTrackListQuery = () => {
-  const { data, error, isPending } = useQuery<TrackInfo[], ErrorResponse>({
+  const { data, error, isPending } = useQuery<TrackInfoResponse[], ErrorResponse>({
     queryKey: ['trackList'],
     queryFn: async () => {
       const [data, error] = await GetTrackInfo()

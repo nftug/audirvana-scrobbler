@@ -14,7 +14,7 @@ export function DeleteTrackInfo(id: string): Promise<bindings$0.ErrorResponse | 
     return $resultPromise;
 }
 
-export function GetTrackInfo(): Promise<[bindings$0.TrackInfo[] | null, bindings$0.ErrorResponse | null]> & { cancel(): void } {
+export function GetTrackInfo(): Promise<[bindings$0.TrackInfoResponse[] | null, bindings$0.ErrorResponse | null]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4142243114) as any;
     return $resultPromise;
 }

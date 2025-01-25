@@ -1,5 +1,5 @@
 import FormTextField from '@/lib/form/FormTextField'
-import { TrackInfo } from '@bindings/app/bindings'
+import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Close, Replay, Save } from '@mui/icons-material'
 import {
   Box,
@@ -16,7 +16,7 @@ import { FormProvider } from 'react-hook-form'
 import { useTrackEditForm } from '../hooks/useTrackEditForm'
 
 interface TrackEditModalProps {
-  item: TrackInfo | undefined
+  item: TrackInfoResponse | undefined
 }
 
 const TrackEditModal = createCallable<TrackEditModalProps>(({ call, item }) => {

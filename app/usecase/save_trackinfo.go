@@ -4,11 +4,7 @@ import (
 	"audirvana-scrobbler/app/bindings"
 	"audirvana-scrobbler/app/domain"
 	"context"
-	"fmt"
-	"strings"
-	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/samber/do"
 )
 
@@ -27,23 +23,20 @@ func NewSaveTrackInfo(i *do.Injector) (SaveTrackInfo, error) {
 }
 
 func (s *saveTrackInfoImpl) Execute(ctx context.Context, id string, form bindings.TrackInfoForm) *bindings.ErrorResponse {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	var errors []bindings.ErrorData
-	if err := validator.New().Struct(form); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			errors = append(errors, bindings.ErrorData{
-				Field:   strings.ToLower(err.Field()),
-				Message: fmt.Sprintf("Validation error on %s: %s %s", err.Field(), err.Tag(), err.Param()),
-			})
-		}
+	track, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return bindings.NewInternalError("Error while getting track info from DB: %v", err)
 	}
-	if len(errors) > 0 {
-		return &bindings.ErrorResponse{Code: bindings.ValidationError, Data: errors}
+	if track == nil {
+		return bindings.NewNotFoundError()
 	}
 
-	if err := s.repo.Save(ctx, id, form); err != nil {
+	track, err = track.Update(form)
+	if err != nil {
+		return err.(*bindings.ErrorResponse)
+	}
+
+	if err := s.repo.Save(ctx, track); err != nil {
 		return bindings.NewInternalError("Error while saving track info: %v", err)
 	}
 

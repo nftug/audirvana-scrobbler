@@ -36,11 +36,13 @@ func main() {
 		Width:  1024,
 		Height: 768,
 		URL:    "/",
-		ShouldClose: func(window *application.WebviewWindow) bool {
-			// window.Hide()
-			window.Minimise()
-			return false
-		},
+		/*
+			ShouldClose: func(window *application.WebviewWindow) bool {
+				// window.Hide()
+				window.Minimise()
+				return false
+			},
+		*/
 	})
 
 	if err := app.Run(); err != nil {

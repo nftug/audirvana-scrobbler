@@ -1,6 +1,6 @@
 package bindings
 
-type TrackInfo struct {
+type TrackInfoResponse struct {
 	ID       string `json:"id"`
 	Artist   string `json:"artist"`
 	Album    string `json:"album"`

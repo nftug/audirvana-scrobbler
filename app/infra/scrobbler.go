@@ -30,7 +30,7 @@ func NewScrobbler(i *do.Injector) (domain.Scrobbler, error) {
 	}, nil
 }
 
-func (s *scrobblerImpl) Scrobble(ctx context.Context, tracks []bindings.TrackInfo) error {
+func (s *scrobblerImpl) Scrobble(ctx context.Context, tracks []bindings.TrackInfoResponse) error {
 	cfg := s.configProvider.Get()
 	if cfg.UserName == "" {
 		return errors.New("user name is empty")
@@ -58,7 +58,7 @@ func (s *scrobblerImpl) Scrobble(ctx context.Context, tracks []bindings.TrackInf
 			return err
 		}
 
-		ids := lo.Map(tracks, func(t bindings.TrackInfo, _ int) string { return t.ID })
+		ids := lo.Map(tracks, func(t bindings.TrackInfoResponse, _ int) string { return t.ID })
 		if err := s.repo.MarkAsScrobbled(ctx, ids); err != nil {
 			return err
 		}
