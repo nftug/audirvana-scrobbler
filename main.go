@@ -4,15 +4,24 @@ import (
 	"audirvana-scrobbler/app"
 	"audirvana-scrobbler/app/usecase/trackinfo"
 	"embed"
+	"fmt"
+	"os"
+	"runtime"
 
 	"github.com/samber/do"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/icons"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
+	if runtime.GOOS != "darwin" {
+		fmt.Fprintln(os.Stderr, "This app is only for MacOS.")
+		os.Exit(-1)
+	}
+
 	// Create an instance of the app structure
 	injector := app.BuildInjector()
 	service := do.MustInvoke[*app.TrackInfoService](injector)
@@ -43,7 +52,7 @@ func main() {
 		Height: 768,
 		URL:    "/",
 		ShouldClose: func(window *application.WebviewWindow) bool {
-			window.Minimise()
+			window.Hide()
 			return false
 		},
 	})
@@ -57,6 +66,7 @@ func main() {
 	go tracker.Execute(app)
 
 	systray := app.NewSystemTray()
+	systray.SetTemplateIcon(icons.SystrayMacTemplate)
 	systray.OnClick(func() {
 		window.Show()
 	})

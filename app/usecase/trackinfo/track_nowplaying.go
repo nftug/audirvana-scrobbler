@@ -4,6 +4,7 @@ import (
 	"audirvana-scrobbler/app/bindings"
 	"audirvana-scrobbler/app/domain"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -66,7 +67,6 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 					t.notifyError(app, "failed to update nowplaying: %v", err)
 				}
 				npPrev.IsNotified = true
-				// fmt.Println("Notified", np)
 			}
 
 			// Update scrobble log
@@ -104,9 +104,15 @@ func (t *trackNowPlayingImpl) saveTrackAndScrobble(
 	// Scrobble
 	if cfg.ScrobbleImmediately {
 		tracks := []domain.TrackInfo{*track}
-		if _, err = t.lastfm.Scrobble(ctx, tracks); err != nil {
+		ret, err := t.lastfm.Scrobble(ctx, tracks)
+		if err != nil {
 			return fmt.Errorf("scrobbling failed: %v", err)
 		}
+
+		// For debug
+		b, _ := json.Marshal(ret)
+		fmt.Println("track.scrobble response: ", string(b))
+
 		track.MarkAsScrobbled(time.Now().UTC())
 	}
 
@@ -117,7 +123,6 @@ func (t *trackNowPlayingImpl) saveTrackAndScrobble(
 
 	npPrev.IsSaved = true
 
-	// fmt.Println("Scrobbled", track)
 	return
 }
 

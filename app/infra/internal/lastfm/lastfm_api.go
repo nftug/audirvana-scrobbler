@@ -76,7 +76,6 @@ func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo)
 		params[fmt.Sprintf("artist[%d]", i)] = track.Artist()
 		params[fmt.Sprintf("track[%d]", i)] = track.Track()
 		params[fmt.Sprintf("album[%d]", i)] = track.Album()
-		params[fmt.Sprintf("duration[%d]", i)] = strconv.Itoa(int(track.Duration()))
 		params[fmt.Sprintf("timestamp[%d]", i)] = strconv.FormatInt(track.PlayedAt().Unix(), 10)
 	}
 
