@@ -1,4 +1,4 @@
-package internal
+package common
 
 import (
 	"audirvana-scrobbler/app/domain"
@@ -8,22 +8,22 @@ import (
 	"github.com/samber/do"
 )
 
-type configPathImpl struct {
+type configPathProviderImpl struct {
 	localPath string
 }
 
-func NewConfigPath(i *do.Injector) (domain.ConfigPathProvider, error) {
+func NewConfigPathProvider(i *do.Injector) (domain.ConfigPathProvider, error) {
 	configPath := configdir.LocalConfig("AudirvanaScrobbler")
 	if err := configdir.MakePath(configPath); err != nil {
 		return nil, err
 	}
-	return &configPathImpl{localPath: configPath}, nil
+	return &configPathProviderImpl{localPath: configPath}, nil
 }
 
-func (lp *configPathImpl) GetJoinedPath(filename string) string {
+func (lp *configPathProviderImpl) GetJoinedPath(filename string) string {
 	return filepath.Join(lp.GetLocalPath(), filename)
 }
 
-func (lp *configPathImpl) GetLocalPath() string {
+func (lp *configPathProviderImpl) GetLocalPath() string {
 	return lp.localPath
 }

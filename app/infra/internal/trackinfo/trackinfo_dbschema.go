@@ -1,4 +1,4 @@
-package internal
+package trackinfo
 
 import (
 	"audirvana-scrobbler/app/bindings"
@@ -20,6 +20,17 @@ type TrackInfoDBSchema struct {
 
 func (TrackInfoDBSchema) TableName() string {
 	return "track_info"
+}
+
+func NewTrackInfoDBSchema(entity domain.TrackInfo) TrackInfoDBSchema {
+	return TrackInfoDBSchema{
+		ID:          entity.ID(),
+		Artist:      entity.Artist(),
+		Album:       entity.Album(),
+		Track:       entity.Track(),
+		PlayedAt:    entity.PlayedAt(),
+		ScrobbledAt: entity.ScrobbledAt(),
+	}
 }
 
 func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {

@@ -1,4 +1,4 @@
-package internal
+package common
 
 import (
 	"audirvana-scrobbler/app/domain"

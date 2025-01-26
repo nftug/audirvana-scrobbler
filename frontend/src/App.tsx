@@ -20,12 +20,12 @@ const App: React.FC = () => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <ConfirmProvider defaultOptions={confirmOptions}>
-          <HeaderProvider>
-            <TheHeader />
-            <TheDrawer />
-          </HeaderProvider>
-
           <QueryClientProvider client={queryClient}>
+            <HeaderProvider>
+              <TheHeader />
+              <TheDrawer />
+            </HeaderProvider>
+
             <TrackEditModal.Root />
 
             <Box component="main">

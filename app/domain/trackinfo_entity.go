@@ -71,3 +71,14 @@ func (t TrackInfo) Update(form bindings.TrackInfoForm) (*TrackInfo, error) {
 	}
 	return updated, nil
 }
+
+func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) *TrackInfo {
+	return &TrackInfo{
+		id:          t.id,
+		artist:      t.artist,
+		album:       t.album,
+		track:       t.track,
+		playedAt:    t.playedAt,
+		scrobbledAt: lib.NewNullableByVal(scrobbledAt),
+	}
+}

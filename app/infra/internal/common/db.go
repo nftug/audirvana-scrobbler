@@ -1,7 +1,8 @@
-package internal
+package common
 
 import (
 	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/infra/internal/trackinfo"
 
 	"github.com/glebarez/sqlite"
 	"github.com/samber/do"
@@ -17,7 +18,7 @@ func NewDB(i *do.Injector) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&TrackInfoDBSchema{}); err != nil {
+	if err := db.AutoMigrate(&trackinfo.TrackInfoDBSchema{}); err != nil {
 		return nil, err
 	}
 

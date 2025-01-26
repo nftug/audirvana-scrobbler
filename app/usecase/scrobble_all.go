@@ -4,8 +4,10 @@ import (
 	"audirvana-scrobbler/app/bindings"
 	"audirvana-scrobbler/app/domain"
 	"context"
+	"time"
 
 	"github.com/samber/do"
+	"github.com/samber/lo"
 )
 
 type ScrobbleAll interface {
@@ -13,24 +15,46 @@ type ScrobbleAll interface {
 }
 
 type scrobbleAllImpl struct {
-	repo      domain.TrackInfoRepository
-	scrobbler domain.Scrobbler
+	cfg    domain.Config
+	repo   domain.TrackInfoRepository
+	lastfm domain.LastFMAPI
 }
 
 func NewScrobbleAll(i *do.Injector) (ScrobbleAll, error) {
+	cfgProvider := do.MustInvoke[domain.ConfigProvider](i)
 	return &scrobbleAllImpl{
-		repo:      do.MustInvoke[domain.TrackInfoRepository](i),
-		scrobbler: do.MustInvoke[domain.Scrobbler](i),
+		cfg:    cfgProvider.Get(),
+		repo:   do.MustInvoke[domain.TrackInfoRepository](i),
+		lastfm: do.MustInvoke[domain.LastFMAPI](i),
 	}, nil
 }
 
 func (s *scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
 	tracks, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return bindings.NewInternalError("Error while getting tracks from DB: %v", err)
 	}
-	if err := s.scrobbler.Scrobble(ctx, tracks); err != nil {
-		return bindings.NewInternalError("Error while scrobbling: %v", err)
+	if err := s.lastfm.Login(ctx, s.cfg.UserName, s.cfg.Password); err != nil {
+		return bindings.NewInternalError("Failed to login: %v", err)
 	}
+
+	chunks := lo.Chunk(tracks, 50)
+	for i, tracks := range chunks {
+		if _, err := s.lastfm.Scrobble(ctx, tracks); err != nil {
+			return bindings.NewInternalError("Error while scrobbling tracks: %v", err)
+		}
+
+		if err := s.repo.MarkAsScrobbled(ctx, tracks); err != nil {
+			return bindings.NewInternalError("Error while marking tracks as scrobbled: %v", err)
+		}
+
+		if i < len(chunks)-1 {
+			time.Sleep(2 * time.Second)
+		}
+	}
+
 	return nil
 }

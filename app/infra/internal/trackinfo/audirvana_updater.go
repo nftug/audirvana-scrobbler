@@ -1,8 +1,7 @@
-package infra
+package trackinfo
 
 import (
 	"audirvana-scrobbler/app/domain"
-	"audirvana-scrobbler/app/infra/internal"
 	"context"
 	"database/sql"
 	"fmt"
@@ -18,14 +17,12 @@ import (
 )
 
 type audirvanaUpdaterImpl struct {
-	configpath domain.ConfigPathProvider
-	repo       domain.TrackInfoRepository
+	repo domain.TrackInfoRepository
 }
 
 func NewAudirvanaUpdater(i *do.Injector) (domain.AudirvanaUpdater, error) {
 	return &audirvanaUpdaterImpl{
-		configpath: do.MustInvoke[domain.ConfigPathProvider](i),
-		repo:       do.MustInvoke[domain.TrackInfoRepository](i),
+		repo: do.MustInvoke[domain.TrackInfoRepository](i),
 	}, nil
 }
 
@@ -104,9 +101,9 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	}
 	defer rows.Close()
 
-	var newTracks []internal.TrackInfoDBSchema
+	var newTracks []TrackInfoDBSchema
 	for rows.Next() {
-		var track internal.TrackInfoDBSchema
+		var track TrackInfoDBSchema
 		var playedAt float64
 		if err := rows.Scan(&track.Artist, &track.Album, &track.Track, &playedAt); err != nil {
 			return err
@@ -117,8 +114,8 @@ func (a *audirvanaUpdaterImpl) updateCore(ctx context.Context, dbFilePath string
 	}
 
 	newTracksEntity :=
-		lo.Map(newTracks, func(t internal.TrackInfoDBSchema, _ int) domain.TrackInfo { return *t.ToEntity() })
-	if err := a.repo.UpdateRange(ctx, newTracksEntity); err != nil {
+		lo.Map(newTracks, func(t TrackInfoDBSchema, _ int) domain.TrackInfo { return *t.ToEntity() })
+	if err := a.repo.CreateRange(ctx, newTracksEntity); err != nil {
 		return err
 	}
 

@@ -3,9 +3,11 @@ package main
 import (
 	"audirvana-scrobbler/app"
 	"embed"
+	"fmt"
 
 	"github.com/samber/do"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
@@ -31,18 +33,26 @@ func main() {
 		},
 	})
 
-	app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "Audirvana Scrobbler",
 		Width:  1024,
 		Height: 768,
 		URL:    "/",
-		/*
-			ShouldClose: func(window *application.WebviewWindow) bool {
-				// window.Hide()
-				window.Minimise()
-				return false
-			},
-		*/
+		ShouldClose: func(window *application.WebviewWindow) bool {
+			window.Minimise()
+			return false
+			// return true
+		},
+	})
+
+	app.OnApplicationEvent(events.Mac.ApplicationDidBecomeActive, func(event *application.ApplicationEvent) {
+		fmt.Println("Restored")
+		window.Show()
+	})
+
+	systray := app.NewSystemTray()
+	systray.OnClick(func() {
+		window.Show()
 	})
 
 	if err := app.Run(); err != nil {

@@ -11,17 +11,21 @@ type AudirvanaUpdater interface {
 }
 
 type Scrobbler interface {
-	Scrobble(ctx context.Context, tracks []bindings.TrackInfoResponse) error
+	Scrobble(ctx context.Context, tracks []TrackInfo) error
 }
 
 type TrackInfoRepository interface {
 	Get(ctx context.Context, id string) (*TrackInfo, error)
-	GetAll(ctx context.Context) ([]bindings.TrackInfoResponse, error)
+	GetAll(ctx context.Context) ([]TrackInfo, error)
 	GetLatestPlayedAt(ctx context.Context) (time.Time, error)
 	Save(ctx context.Context, entity *TrackInfo) error
-	MarkAsScrobbled(ctx context.Context, ids []string) error
+	MarkAsScrobbled(ctx context.Context, entities []TrackInfo) error
 	Delete(ctx context.Context, id string) error
-	UpdateRange(ctx context.Context, tracks []TrackInfo) error
+	CreateRange(ctx context.Context, tracks []TrackInfo) error
+}
+
+type TrackInfoQueryService interface {
+	GetAll(ctx context.Context) ([]bindings.TrackInfoResponse, error)
 }
 
 type ConfigPathProvider interface {
@@ -32,4 +36,9 @@ type ConfigPathProvider interface {
 type ConfigProvider interface {
 	Get() Config
 	Write(cfg Config) error
+}
+
+type LastFMAPI interface {
+	Login(ctx context.Context, username, password string) error
+	Scrobble(ctx context.Context, tracks []TrackInfo) (map[string]any, error)
 }

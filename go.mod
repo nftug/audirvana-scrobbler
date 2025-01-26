@@ -12,7 +12,6 @@ require (
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
 	github.com/samber/do v1.6.0
 	github.com/samber/lo v1.47.0
-	github.com/shkh/lastfm-go v0.0.0-20191215035245-89a801c244e0
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.8.3
 	gorm.io/gorm v1.25.12

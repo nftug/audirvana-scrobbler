@@ -15,13 +15,13 @@ type GetTrackInfo interface {
 
 type getTrackInfoImpl struct {
 	updater domain.AudirvanaUpdater
-	repo    domain.TrackInfoRepository
+	qs      domain.TrackInfoQueryService
 }
 
 func NewGetTrackInfo(i *do.Injector) (GetTrackInfo, error) {
 	return &getTrackInfoImpl{
 		updater: do.MustInvoke[domain.AudirvanaUpdater](i),
-		repo:    do.MustInvoke[domain.TrackInfoRepository](i),
+		qs:      do.MustInvoke[domain.TrackInfoQueryService](i),
 	}, nil
 }
 
@@ -33,7 +33,7 @@ func (g *getTrackInfoImpl) Execute(ctx context.Context) ([]bindings.TrackInfoRes
 		return nil, bindings.NewInternalError("Error while updating scrobble log: %v", err.Error())
 	}
 
-	result, err := g.repo.GetAll(ctx)
+	result, err := g.qs.GetAll(ctx)
 	if err != nil {
 		return nil, bindings.NewInternalError("Error while getting scrobble log: %v", err.Error())
 	}
