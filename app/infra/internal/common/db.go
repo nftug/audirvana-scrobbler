@@ -1,7 +1,6 @@
 package common
 
 import (
-	"audirvana-scrobbler/app/domain"
 	"audirvana-scrobbler/app/infra/internal/trackinfo"
 
 	"github.com/glebarez/sqlite"
@@ -10,7 +9,7 @@ import (
 )
 
 func NewDB(i *do.Injector) (*gorm.DB, error) {
-	configPath := do.MustInvoke[domain.ConfigPathProvider](i)
+	configPath := do.MustInvoke[*ConfigPathProvider](i)
 	dbPath := configPath.GetJoinedPath("local_tracks.db")
 
 	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})

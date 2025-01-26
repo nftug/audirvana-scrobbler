@@ -1,8 +1,15 @@
 package domain
 
 type Config struct {
-	APIKey    string `env:"LASTFM_API_KEY"`
-	APISecret string `env:"LASTFM_API_SECRET"`
-	UserName  string `env:"LASTFM_USERNAME"`
-	Password  string `env:"LASTFM_PASSWORD"`
+	APIKey              string `json:"apiKey"`
+	APISecret           string `json:"apiSecret"`
+	UserName            string `json:"userName"`
+	Password            string `json:"password"`
+	ScrobbleImmediately bool   `json:"scrobbleImmediately"`
+	PositionThreshold   int    `json:"positionThreshold"`
+}
+
+var DefaultConfig = Config{
+	ScrobbleImmediately: false,
+	PositionThreshold:   80,
 }

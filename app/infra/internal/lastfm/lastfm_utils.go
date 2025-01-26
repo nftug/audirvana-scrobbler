@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -38,6 +39,9 @@ func (l *lastFMAPIImpl) callPostWithoutSk(ctx context.Context, method string, ar
 }
 
 func (l *lastFMAPIImpl) callPostWithSk(ctx context.Context, method string, args map[string]string) (map[string]any, error) {
+	if l.sessionKey == "" {
+		return nil, errors.New("not logged in")
+	}
 	args["sk"] = l.sessionKey
 	return l.callPostWithoutSk(ctx, method, args)
 }

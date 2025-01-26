@@ -1,4 +1,4 @@
-package usecase
+package trackinfo
 
 import (
 	"audirvana-scrobbler/app/bindings"
@@ -10,7 +10,7 @@ import (
 )
 
 type DeleteTrackInfo interface {
-	Execute(ctx context.Context, id string) *bindings.ErrorResponse
+	Execute(ctx context.Context, id int) *bindings.ErrorResponse
 }
 
 type deleteTrackInfoImpl struct {
@@ -23,7 +23,7 @@ func NewDeleteTrackInfo(i *do.Injector) (DeleteTrackInfo, error) {
 	}, nil
 }
 
-func (d *deleteTrackInfoImpl) Execute(ctx context.Context, id string) *bindings.ErrorResponse {
+func (d *deleteTrackInfoImpl) Execute(ctx context.Context, id int) *bindings.ErrorResponse {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 

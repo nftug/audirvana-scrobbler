@@ -5,14 +5,11 @@ go 1.22.4
 toolchain go1.23.2
 
 require (
-	github.com/caarlos0/env/v10 v10.0.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-playground/validator/v10 v10.24.0
-	github.com/joho/godotenv v1.5.1
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
 	github.com/samber/do v1.6.0
 	github.com/samber/lo v1.47.0
-	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.8.3
 	gorm.io/gorm v1.25.12
 )
@@ -60,7 +57,6 @@ require (
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
-	github.com/soniakeys/unit v1.0.0 // indirect
 	github.com/wailsapp/go-webview2 v1.0.18 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect

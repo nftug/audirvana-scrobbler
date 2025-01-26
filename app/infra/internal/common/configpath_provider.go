@@ -1,29 +1,28 @@
 package common
 
 import (
-	"audirvana-scrobbler/app/domain"
 	"path/filepath"
 
 	"github.com/kirsle/configdir"
 	"github.com/samber/do"
 )
 
-type configPathProviderImpl struct {
+type ConfigPathProvider struct {
 	localPath string
 }
 
-func NewConfigPathProvider(i *do.Injector) (domain.ConfigPathProvider, error) {
+func NewConfigPathProvider(i *do.Injector) (*ConfigPathProvider, error) {
 	configPath := configdir.LocalConfig("AudirvanaScrobbler")
 	if err := configdir.MakePath(configPath); err != nil {
 		return nil, err
 	}
-	return &configPathProviderImpl{localPath: configPath}, nil
+	return &ConfigPathProvider{localPath: configPath}, nil
 }
 
-func (lp *configPathProviderImpl) GetJoinedPath(filename string) string {
-	return filepath.Join(lp.GetLocalPath(), filename)
+func (p *ConfigPathProvider) GetJoinedPath(filename string) string {
+	return filepath.Join(p.GetLocalPath(), filename)
 }
 
-func (lp *configPathProviderImpl) GetLocalPath() string {
-	return lp.localPath
+func (p *ConfigPathProvider) GetLocalPath() string {
+	return p.localPath
 }

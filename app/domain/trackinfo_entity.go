@@ -11,26 +11,29 @@ import (
 )
 
 type TrackInfo struct {
-	id          string
+	id          int
 	artist      string
 	album       string
 	track       string
+	duration    float64
 	playedAt    time.Time
 	scrobbledAt lib.Nullable[time.Time]
 }
 
-func (t TrackInfo) ID() string              { return t.id }
+func (t TrackInfo) ID() int                 { return t.id }
 func (t TrackInfo) Artist() string          { return t.artist }
 func (t TrackInfo) Album() string           { return t.album }
 func (t TrackInfo) Track() string           { return t.track }
+func (t TrackInfo) Duration() float64       { return t.duration }
 func (t TrackInfo) PlayedAt() time.Time     { return t.playedAt }
 func (t TrackInfo) ScrobbledAt() *time.Time { return t.scrobbledAt.ToCopiedPtr() }
 
 func ReconstructTrackInfo(
-	id string,
+	id int,
 	artist string,
 	album string,
 	track string,
+	duration float64,
 	playedAt time.Time,
 	scrobbledAt *time.Time,
 ) *TrackInfo {
@@ -41,6 +44,15 @@ func ReconstructTrackInfo(
 		track:       track,
 		playedAt:    playedAt,
 		scrobbledAt: lib.NewNullable(scrobbledAt),
+	}
+}
+
+func CreateTrackInfo(np NowPlaying, playedAt time.Time) *TrackInfo {
+	return &TrackInfo{
+		artist:   np.Artist,
+		album:    np.Album,
+		track:    np.Track,
+		playedAt: playedAt,
 	}
 }
 

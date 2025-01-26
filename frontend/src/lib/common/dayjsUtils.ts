@@ -1,4 +1,7 @@
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
 
 export const formatDateTime = (datetime?: string, useFullNotation = false) => {
   if (!datetime) return 'N/A'
@@ -17,4 +20,9 @@ export const formatDateTime = (datetime?: string, useFullNotation = false) => {
   } else {
     return dt.format('MM/DD HH:mm:ss')
   }
+}
+
+export const formatDuration = (seconds: number): string => {
+  const duration = dayjs.duration(seconds, 'seconds')
+  return duration.format('mm:ss')
 }

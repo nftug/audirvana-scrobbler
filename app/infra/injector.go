@@ -13,7 +13,7 @@ func Inject(i *do.Injector) {
 	do.Provide(i, common.NewDB)
 	do.Provide(i, common.NewConfigProvider)
 
-	do.Provide(i, trackinfo.NewAudirvanaUpdater)
+	do.Provide(i, trackinfo.NewNowPlayingTracker)
 	do.Provide(i, trackinfo.NewTrackInfoRepository)
 	do.Provide(i, trackinfo.NewTrackInfoQueryService)
 	do.Provide(i, lastfm.NewLastFMAPI)

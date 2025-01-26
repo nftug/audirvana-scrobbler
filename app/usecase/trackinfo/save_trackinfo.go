@@ -1,4 +1,4 @@
-package usecase
+package trackinfo
 
 import (
 	"audirvana-scrobbler/app/bindings"
@@ -9,7 +9,7 @@ import (
 )
 
 type SaveTrackInfo interface {
-	Execute(ctx context.Context, id string, form bindings.TrackInfoForm) *bindings.ErrorResponse
+	Execute(ctx context.Context, id int, form bindings.TrackInfoForm) *bindings.ErrorResponse
 }
 
 type saveTrackInfoImpl struct {
@@ -22,7 +22,7 @@ func NewSaveTrackInfo(i *do.Injector) (SaveTrackInfo, error) {
 	}, nil
 }
 
-func (s *saveTrackInfoImpl) Execute(ctx context.Context, id string, form bindings.TrackInfoForm) *bindings.ErrorResponse {
+func (s *saveTrackInfoImpl) Execute(ctx context.Context, id int, form bindings.TrackInfoForm) *bindings.ErrorResponse {
 	track, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return bindings.NewInternalError("Error while getting track info from DB: %v", err)

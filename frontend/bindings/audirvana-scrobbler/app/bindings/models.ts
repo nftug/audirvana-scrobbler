@@ -30,9 +30,10 @@ export interface TrackInfoForm {
 }
 
 export interface TrackInfoResponse {
-    "id": string;
+    "id": number;
     "artist": string;
     "album": string;
     "track": string;
     "playedAt": string;
+    "scrobbledAt": string | null;
 }

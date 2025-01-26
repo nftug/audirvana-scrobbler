@@ -1,10 +1,15 @@
 package usecase
 
-import "github.com/samber/do"
+import (
+	"audirvana-scrobbler/app/usecase/trackinfo"
+
+	"github.com/samber/do"
+)
 
 func Inject(i *do.Injector) {
-	do.Provide(i, NewGetTrackInfo)
-	do.Provide(i, NewSaveTrackInfo)
-	do.Provide(i, NewDeleteTrackInfo)
-	do.Provide(i, NewScrobbleAll)
+	do.Provide(i, trackinfo.NewGetTrackInfoList)
+	do.Provide(i, trackinfo.NewSaveTrackInfo)
+	do.Provide(i, trackinfo.NewDeleteTrackInfo)
+	do.Provide(i, trackinfo.NewScrobbleAll)
+	do.Provide(i, trackinfo.NewTrackNowPlaying)
 }

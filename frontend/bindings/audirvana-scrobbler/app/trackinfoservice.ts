@@ -9,17 +9,17 @@ import {Call as $Call} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as bindings$0 from "./bindings/models.js";
 
-export function DeleteTrackInfo(id: string): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
+export function DeleteTrackInfo(id: number): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4001489541, id) as any;
     return $resultPromise;
 }
 
-export function GetTrackInfo(): Promise<[bindings$0.TrackInfoResponse[] | null, bindings$0.ErrorResponse | null]> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(4142243114) as any;
+export function GetTrackInfoList(): Promise<[bindings$0.TrackInfoResponse[] | null, bindings$0.ErrorResponse | null]> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(865926470) as any;
     return $resultPromise;
 }
 
-export function SaveTrackInfo(id: string, form: bindings$0.TrackInfoForm): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
+export function SaveTrackInfo(id: number, form: bindings$0.TrackInfoForm): Promise<bindings$0.ErrorResponse | null> & { cancel(): void } {
     let $resultPromise = $Call.ByID(1423142159, id, form) as any;
     return $resultPromise;
 }

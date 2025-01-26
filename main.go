@@ -2,12 +2,11 @@ package main
 
 import (
 	"audirvana-scrobbler/app"
+	"audirvana-scrobbler/app/usecase/trackinfo"
 	"embed"
-	"fmt"
 
 	"github.com/samber/do"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
@@ -20,7 +19,7 @@ func main() {
 
 	app := application.New(application.Options{
 		Name:        "Audirvana Scrobbler",
-		Description: "Last.fm scrobbler for Audirvana.",
+		Description: "Last.fm scrobbler for MacOS.",
 
 		Services: []application.Service{
 			application.NewService(service),
@@ -33,6 +32,11 @@ func main() {
 		},
 	})
 
+	// do.Invoke経由で使う
+	do.Provide(injector, func(i *do.Injector) (*application.App, error) {
+		return app, nil
+	})
+
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "Audirvana Scrobbler",
 		Width:  1024,
@@ -41,14 +45,16 @@ func main() {
 		ShouldClose: func(window *application.WebviewWindow) bool {
 			window.Minimise()
 			return false
-			// return true
 		},
 	})
 
-	app.OnApplicationEvent(events.Mac.ApplicationDidBecomeActive, func(event *application.ApplicationEvent) {
-		fmt.Println("Restored")
-		window.Show()
+	do.Provide(injector, func(i *do.Injector) (*application.WebviewWindow, error) {
+		return window, nil
 	})
+
+	// Start nowplaying tracker
+	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
+	go tracker.Execute(app)
 
 	systray := app.NewSystemTray()
 	systray.OnClick(func() {

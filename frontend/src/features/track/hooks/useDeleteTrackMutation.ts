@@ -8,7 +8,7 @@ export const useDeleteTrackMutation = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (id: number) => {
       const error = await DeleteTrackInfo(id)
       if (error) throw error
     },

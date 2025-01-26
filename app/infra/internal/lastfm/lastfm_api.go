@@ -31,6 +31,8 @@ func NewLastFMAPI(i *do.Injector) (domain.LastFMAPI, error) {
 	}, nil
 }
 
+func (l *lastFMAPIImpl) IsLoggedIn() bool { return l.sessionKey != "" }
+
 func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) error {
 	if username == "" {
 		return errors.New("username is empty")
@@ -39,9 +41,10 @@ func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) er
 		return errors.New("password is empty")
 	}
 
-	params := map[string]string{}
-	params["username"] = username
-	params["password"] = password
+	params := map[string]string{
+		"username": username,
+		"password": password,
+	}
 
 	result, err := l.callPostWithoutSk(ctx, "auth.getmobilesession", params)
 	if err != nil {
@@ -64,9 +67,6 @@ func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) er
 }
 
 func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo) (map[string]any, error) {
-	if l.sessionKey == "" {
-		return nil, errors.New("not logged in")
-	}
 	if len(tracks) > 50 {
 		return nil, errors.New("number of tracks is more than 50")
 	}
@@ -74,13 +74,28 @@ func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo)
 	params := map[string]string{}
 	for i, track := range tracks {
 		params[fmt.Sprintf("artist[%d]", i)] = track.Artist()
-		params[fmt.Sprintf("albumArtist[%d]", i)] = track.Artist()
 		params[fmt.Sprintf("track[%d]", i)] = track.Track()
 		params[fmt.Sprintf("album[%d]", i)] = track.Album()
+		params[fmt.Sprintf("duration[%d]", i)] = strconv.Itoa(int(track.Duration()))
 		params[fmt.Sprintf("timestamp[%d]", i)] = strconv.FormatInt(track.PlayedAt().Unix(), 10)
 	}
 
 	result, err := l.callPostWithSk(ctx, "track.scrobble", params)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (l *lastFMAPIImpl) UpdateNowPlaying(ctx context.Context, np domain.NowPlaying) (map[string]any, error) {
+	params := map[string]string{
+		"artist":   np.Artist,
+		"track":    np.Track,
+		"album":    np.Album,
+		"duration": strconv.Itoa(int(np.Duration)),
+	}
+
+	result, err := l.callPostWithSk(ctx, "track.updateNowPlaying", params)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package usecase
+package trackinfo
 
 import (
 	"audirvana-scrobbler/app/bindings"
@@ -37,8 +37,12 @@ func (s *scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 	if err != nil {
 		return bindings.NewInternalError("Error while getting tracks from DB: %v", err)
 	}
-	if err := s.lastfm.Login(ctx, s.cfg.UserName, s.cfg.Password); err != nil {
-		return bindings.NewInternalError("Failed to login: %v", err)
+	tracks = lo.Filter(tracks, func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt() == nil })
+
+	if !s.lastfm.IsLoggedIn() {
+		if err := s.lastfm.Login(ctx, s.cfg.UserName, s.cfg.Password); err != nil {
+			return bindings.NewInternalError("Failed to login: %v", err)
+		}
 	}
 
 	chunks := lo.Chunk(tracks, 50)
