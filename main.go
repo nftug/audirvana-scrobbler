@@ -55,6 +55,7 @@ func main() {
 			window.Hide()
 			return false
 		},
+		Hidden: true,
 	})
 
 	do.Provide(injector, func(i *do.Injector) (*application.WebviewWindow, error) {
@@ -68,6 +69,7 @@ func main() {
 	systray := app.NewSystemTray()
 	systray.SetTemplateIcon(icons.SystrayMacTemplate)
 	systray.OnClick(func() {
+		window.Focus()
 		window.Show()
 	})
 

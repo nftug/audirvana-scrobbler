@@ -3,7 +3,7 @@ package trackinfo
 import (
 	"audirvana-scrobbler/app/domain"
 	"context"
-	"embed"
+	_ "embed"
 	"encoding/json"
 	"os/exec"
 	"time"
@@ -11,8 +11,8 @@ import (
 	"github.com/samber/do"
 )
 
-//go:embed script/*
-var script embed.FS
+//go:embed script/getNowPlaying.applescript
+var script string
 
 type nowPlayingTrackerImpl struct{}
 
@@ -43,8 +43,7 @@ func (n *nowPlayingTrackerImpl) StreamNowPlaying(
 }
 
 func getNowPlaying(ctx context.Context) (*domain.NowPlaying, error) {
-	scriptByte, _ := script.ReadFile("script/getNowPlaying.applescript")
-	ret, err := exec.CommandContext(ctx, "osascript", "-e", string(scriptByte)).Output()
+	ret, err := exec.CommandContext(ctx, "osascript", "-e", script).Output()
 	if err != nil {
 		return nil, err
 	}

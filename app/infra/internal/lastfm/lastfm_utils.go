@@ -65,9 +65,7 @@ func (l *lastFMAPIImpl) createSignature(params url.Values) string {
 }
 
 func invokeAPICall(ctx context.Context, httpMethod string, params url.Values) (result map[string]any, err error) {
-	if httpMethod == http.MethodPost {
-		params.Add("format", "json")
-	}
+	params.Add("format", "json")
 
 	req, err := http.NewRequestWithContext(ctx, httpMethod, apiURL, strings.NewReader(params.Encode()))
 	if err != nil {

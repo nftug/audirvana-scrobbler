@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/samber/do"
@@ -36,8 +37,8 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	npChan := make(chan *domain.NowPlaying)
-	errChan := make(chan error)
+	npChan := make(chan *domain.NowPlaying, 5)
+	errChan := make(chan error, 5)
 
 	go t.tracker.StreamNowPlaying(ctx, npChan, errChan)
 
@@ -54,7 +55,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	for {
 		select {
 		case np := <-npChan:
-			app.EmitEvent(string(bindings.NotifyNowPlaying), np, nil)
+			app.EmitEvent(bindings.NotifyNowPlaying, np, nil)
 			if np == nil || !t.lastfm.IsLoggedIn() {
 				continue
 			}
@@ -73,10 +74,37 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 			// 5秒間隔で実行する
 			if time.Since(lastProcessedTime) >= 5*time.Second {
 				lastProcessedTime = time.Now()
-				if err := t.saveTrackAndScrobble(ctx, np, &npPrev); err != nil {
-					t.notifyError(app, "%v", err)
+
+				percentage := int(np.Position / np.Duration * 100)
+				if percentage < cfg.PositionThreshold || npPrev.IsSaved {
 					continue
 				}
+
+				track := domain.CreateTrackInfo(*np, time.Now().UTC())
+
+				// Scrobble
+				if cfg.ScrobbleImmediately {
+					tracks := []domain.TrackInfo{*track}
+					ret, err := t.lastfm.Scrobble(ctx, tracks)
+					if err != nil {
+						t.notifyError(app, "scrobbling failed: %v", err)
+						continue
+					}
+
+					// For debug
+					b, _ := json.Marshal(ret)
+					log.Println("track.scrobble response: ", string(b))
+
+					track = track.MarkAsScrobbled(time.Now().UTC())
+				}
+
+				// Save
+				if err := t.repo.Save(ctx, track); err != nil {
+					t.notifyError(app, "failed to save play log: %v", err)
+					continue
+				}
+
+				npPrev.IsSaved = true
 			}
 
 			if !np.Equals(npPrev) {
@@ -90,43 +118,6 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	}
 }
 
-func (t *trackNowPlayingImpl) saveTrackAndScrobble(
-	ctx context.Context, np *domain.NowPlaying, npPrev *domain.NowPlaying) (err error) {
-	cfg := t.cfgProvider.Get()
-
-	percentage := int(np.Position / np.Duration * 100)
-	if percentage < cfg.PositionThreshold || npPrev.IsSaved {
-		return
-	}
-
-	track := domain.CreateTrackInfo(*np, time.Now().UTC())
-
-	// Scrobble
-	if cfg.ScrobbleImmediately {
-		tracks := []domain.TrackInfo{*track}
-		ret, err := t.lastfm.Scrobble(ctx, tracks)
-		if err != nil {
-			return fmt.Errorf("scrobbling failed: %v", err)
-		}
-
-		// For debug
-		b, _ := json.Marshal(ret)
-		fmt.Println("track.scrobble response: ", string(b))
-
-		track.MarkAsScrobbled(time.Now().UTC())
-	}
-
-	// Save
-	if err = t.repo.Save(ctx, track); err != nil {
-		return fmt.Errorf("failed to save play log: %v", err)
-	}
-
-	npPrev.IsSaved = true
-
-	return
-}
-
 func (t *trackNowPlayingImpl) notifyError(app *application.App, format string, a ...any) {
-	app.EmitEvent(string(bindings.NotifyNowPlaying),
-		nil, bindings.NewInternalError(format, a...))
+	app.EmitEvent(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
 }

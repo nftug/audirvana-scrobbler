@@ -13,7 +13,6 @@ type TrackInfoService struct {
 	saveTrackInfo    trackinfo.SaveTrackInfo
 	deleteTrackInfo  trackinfo.DeleteTrackInfo
 	scrobbleAll      trackinfo.ScrobbleAll
-	trackNowPlaying  trackinfo.TrackNowPlaying
 }
 
 func NewApp(i *do.Injector) (*TrackInfoService, error) {
@@ -22,7 +21,6 @@ func NewApp(i *do.Injector) (*TrackInfoService, error) {
 		saveTrackInfo:    do.MustInvoke[trackinfo.SaveTrackInfo](i),
 		deleteTrackInfo:  do.MustInvoke[trackinfo.DeleteTrackInfo](i),
 		scrobbleAll:      do.MustInvoke[trackinfo.ScrobbleAll](i),
-		trackNowPlaying:  do.MustInvoke[trackinfo.TrackNowPlaying](i),
 	}, nil
 }
 
