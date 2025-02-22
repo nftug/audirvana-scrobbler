@@ -22,7 +22,7 @@ func NewGetTrackInfoList(i *do.Injector) (GetTrackInfoList, error) {
 	}, nil
 }
 
-func (g *getTrackInfoListImpl) Execute(ctx context.Context) ([]bindings.TrackInfoResponse, *bindings.ErrorResponse) {
+func (g getTrackInfoListImpl) Execute(ctx context.Context) ([]bindings.TrackInfoResponse, *bindings.ErrorResponse) {
 	result, err := g.qs.GetAll(ctx)
 	if err != nil {
 		return nil, bindings.NewInternalError("Error while getting scrobble log: %v", err.Error())

@@ -29,7 +29,7 @@ func NewScrobbleAll(i *do.Injector) (ScrobbleAll, error) {
 	}, nil
 }
 
-func (s *scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
+func (s scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
@@ -51,7 +51,7 @@ func (s *scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 			return bindings.NewInternalError("Error while scrobbling tracks: %v", err)
 		}
 
-		if err := s.repo.MarkAsScrobbled(ctx, tracks); err != nil {
+		if _, err := s.repo.MarkAsScrobbled(ctx, tracks); err != nil {
 			return bindings.NewInternalError("Error while marking tracks as scrobbled: %v", err)
 		}
 

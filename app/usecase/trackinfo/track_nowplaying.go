@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/samber/do"
+	"github.com/samber/lo"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type TrackNowPlaying interface {
-	Execute(app *application.App)
+	Run(app *application.App)
 }
 
 type trackNowPlayingImpl struct {
@@ -33,11 +34,15 @@ func NewTrackNowPlaying(i *do.Injector) (TrackNowPlaying, error) {
 	}, nil
 }
 
-func (t *trackNowPlayingImpl) Execute(app *application.App) {
+func (t *trackNowPlayingImpl) Run(app *application.App) {
+	go t.execute(app)
+}
+
+func (t *trackNowPlayingImpl) execute(app *application.App) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	npChan := make(chan *domain.NowPlaying, 5)
+	npChan := make(chan domain.NowPlaying, 5)
 	errChan := make(chan error, 5)
 
 	go t.tracker.StreamNowPlaying(ctx, npChan, errChan)
@@ -56,7 +61,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 		select {
 		case np := <-npChan:
 			app.EmitEvent(bindings.NotifyNowPlaying, np, nil)
-			if np == nil || !t.lastfm.IsLoggedIn() {
+			if lo.IsEmpty(np) || !t.lastfm.IsLoggedIn() {
 				continue
 			}
 
@@ -64,7 +69,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 
 			// Update nowplaying
 			if cfg.ScrobbleImmediately && !npPrev.IsNotified {
-				if _, err := t.lastfm.UpdateNowPlaying(ctx, *np); err != nil {
+				if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
 					t.notifyError(app, "failed to update nowplaying: %v", err)
 				}
 				npPrev.IsNotified = true
@@ -80,11 +85,11 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 					continue
 				}
 
-				track := domain.CreateTrackInfo(*np, time.Now().UTC())
+				track := domain.CreateTrackInfo(np, time.Now().UTC())
 
 				// Scrobble
 				if cfg.ScrobbleImmediately {
-					tracks := []domain.TrackInfo{*track}
+					tracks := []domain.TrackInfo{track}
 					ret, err := t.lastfm.Scrobble(ctx, tracks)
 					if err != nil {
 						t.notifyError(app, "scrobbling failed: %v", err)
@@ -99,7 +104,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 				}
 
 				// Save
-				if err := t.repo.Save(ctx, track); err != nil {
+				if _, err := t.repo.Save(ctx, track); err != nil {
 					t.notifyError(app, "failed to save play log: %v", err)
 					continue
 				}
@@ -108,7 +113,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 			}
 
 			if !np.Equals(npPrev) {
-				npPrev = *np
+				npPrev = np
 			}
 
 		case err := <-errChan:

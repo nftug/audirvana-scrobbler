@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/samber/do"
+	"github.com/samber/lo"
 )
 
 type SaveTrackInfo interface {
@@ -22,12 +23,12 @@ func NewSaveTrackInfo(i *do.Injector) (SaveTrackInfo, error) {
 	}, nil
 }
 
-func (s *saveTrackInfoImpl) Execute(ctx context.Context, id int, form bindings.TrackInfoForm) *bindings.ErrorResponse {
+func (s saveTrackInfoImpl) Execute(ctx context.Context, id int, form bindings.TrackInfoForm) *bindings.ErrorResponse {
 	track, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return bindings.NewInternalError("Error while getting track info from DB: %v", err)
 	}
-	if track == nil {
+	if lo.IsEmpty(track) {
 		return bindings.NewNotFoundError()
 	}
 
@@ -36,7 +37,7 @@ func (s *saveTrackInfoImpl) Execute(ctx context.Context, id int, form bindings.T
 		return err.(*bindings.ErrorResponse)
 	}
 
-	if err := s.repo.Save(ctx, track); err != nil {
+	if _, err := s.repo.Save(ctx, track); err != nil {
 		return bindings.NewInternalError("Error while saving track info: %v", err)
 	}
 

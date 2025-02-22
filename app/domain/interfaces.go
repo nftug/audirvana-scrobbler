@@ -6,14 +6,14 @@ import (
 )
 
 type NowPlayingTracker interface {
-	StreamNowPlaying(ctx context.Context, npChan chan<- *NowPlaying, errChan chan<- error)
+	StreamNowPlaying(ctx context.Context, npChan chan<- NowPlaying, errChan chan<- error)
 }
 
 type TrackInfoRepository interface {
-	Get(ctx context.Context, id int) (*TrackInfo, error)
+	Get(ctx context.Context, id int) (TrackInfo, error)
 	GetAll(ctx context.Context) ([]TrackInfo, error)
-	Save(ctx context.Context, entity *TrackInfo) error
-	MarkAsScrobbled(ctx context.Context, entities []TrackInfo) error
+	Save(ctx context.Context, entity TrackInfo) (TrackInfo, error)
+	MarkAsScrobbled(ctx context.Context, entities []TrackInfo) ([]TrackInfo, error)
 	Delete(ctx context.Context, id int) error
 }
 

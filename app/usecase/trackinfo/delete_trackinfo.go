@@ -23,7 +23,7 @@ func NewDeleteTrackInfo(i *do.Injector) (DeleteTrackInfo, error) {
 	}, nil
 }
 
-func (d *deleteTrackInfoImpl) Execute(ctx context.Context, id int) *bindings.ErrorResponse {
+func (d deleteTrackInfoImpl) Execute(ctx context.Context, id int) *bindings.ErrorResponse {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 

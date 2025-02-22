@@ -26,7 +26,7 @@ func (t TrackInfo) Album() string           { return t.album }
 func (t TrackInfo) Track() string           { return t.track }
 func (t TrackInfo) Duration() float64       { return t.duration }
 func (t TrackInfo) PlayedAt() time.Time     { return t.playedAt }
-func (t TrackInfo) ScrobbledAt() *time.Time { return t.scrobbledAt.ToCopiedPtr() }
+func (t TrackInfo) ScrobbledAt() *time.Time { return t.scrobbledAt.Unwrap() }
 
 func ReconstructTrackInfo(
 	id int,
@@ -36,8 +36,8 @@ func ReconstructTrackInfo(
 	duration float64,
 	playedAt time.Time,
 	scrobbledAt *time.Time,
-) *TrackInfo {
-	return &TrackInfo{
+) TrackInfo {
+	return TrackInfo{
 		id:          id,
 		artist:      artist,
 		album:       album,
@@ -47,8 +47,8 @@ func ReconstructTrackInfo(
 	}
 }
 
-func CreateTrackInfo(np NowPlaying, playedAt time.Time) *TrackInfo {
-	return &TrackInfo{
+func CreateTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
+	return TrackInfo{
 		artist:   np.Artist,
 		album:    np.Album,
 		track:    np.Track,
@@ -56,7 +56,7 @@ func CreateTrackInfo(np NowPlaying, playedAt time.Time) *TrackInfo {
 	}
 }
 
-func (t TrackInfo) Update(form bindings.TrackInfoForm) (*TrackInfo, error) {
+func (t TrackInfo) Update(form bindings.TrackInfoForm) (TrackInfo, error) {
 	var errData []bindings.ErrorData
 	if err := validator.New().Struct(form); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
@@ -67,13 +67,13 @@ func (t TrackInfo) Update(form bindings.TrackInfoForm) (*TrackInfo, error) {
 		}
 	}
 	if len(errData) > 0 {
-		return nil, &bindings.ErrorResponse{
+		return t, &bindings.ErrorResponse{
 			Code: bindings.ValidationError,
 			Data: errData,
 		}
 	}
 
-	updated := &TrackInfo{
+	updated := TrackInfo{
 		id:          t.id,
 		artist:      form.Artist,
 		album:       form.Album,
@@ -84,8 +84,8 @@ func (t TrackInfo) Update(form bindings.TrackInfoForm) (*TrackInfo, error) {
 	return updated, nil
 }
 
-func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) *TrackInfo {
-	return &TrackInfo{
+func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) TrackInfo {
+	return TrackInfo{
 		id:          t.id,
 		artist:      t.artist,
 		album:       t.album,

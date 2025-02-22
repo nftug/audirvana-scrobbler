@@ -36,7 +36,7 @@ func NewTrackInfoDBSchema(entity domain.TrackInfo) TrackInfoDBSchema {
 	}
 }
 
-func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
+func (t TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
 	return bindings.TrackInfoResponse{
 		ID:       t.ID,
 		Artist:   t.Artist,
@@ -51,6 +51,6 @@ func (t *TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
 	}
 }
 
-func (t *TrackInfoDBSchema) ToEntity() *domain.TrackInfo {
+func (t TrackInfoDBSchema) ToEntity() domain.TrackInfo {
 	return domain.ReconstructTrackInfo(t.ID, t.Artist, t.Album, t.Track, t.Duration, t.PlayedAt, t.ScrobbledAt)
 }

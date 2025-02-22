@@ -24,7 +24,7 @@ func NewConfigProvider(i *do.Injector) (domain.ConfigProvider, error) {
 	}
 	return &configProviderImpl{
 		filepath: filepath,
-		config:   *cfg,
+		config:   cfg,
 	}, nil
 }
 
@@ -40,17 +40,17 @@ func (c *configProviderImpl) Write(cfg domain.Config) error {
 	return nil
 }
 
-func loadConfig(filepath string) (*domain.Config, error) {
+func loadConfig(filepath string) (domain.Config, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
-		return nil, err
+		return domain.Config{}, err
 	}
 	cfg := domain.DefaultConfig
 	err = json.Unmarshal(data, &cfg)
 	if err != nil {
-		return nil, err
+		return domain.Config{}, err
 	}
-	return &cfg, nil
+	return cfg, nil
 }
 
 func saveConfig(filepath string, config domain.Config) error {

@@ -32,37 +32,38 @@ func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]domain.TrackInf
 	}
 
 	tracks := lo.Map(ret, func(x TrackInfoDBSchema, _ int) domain.TrackInfo {
-		return *x.ToEntity()
+		return x.ToEntity()
 	})
 	return tracks, nil
 }
 
-func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (*domain.TrackInfo, error) {
+func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (domain.TrackInfo, error) {
 	var ret TrackInfoDBSchema
 
 	query := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).Where("scrobbled_at IS NULL")
 	if err := query.First(&ret).Error; err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
-			return nil, nil
+			return domain.TrackInfo{}, nil
 		default:
-			return nil, err
+			return domain.TrackInfo{}, err
 		}
 	}
 
 	return ret.ToEntity(), nil
 }
 
-func (r *trackInfoRepositoryImpl) Save(ctx context.Context, entity *domain.TrackInfo) error {
-	col := NewTrackInfoDBSchema(*entity)
+func (r *trackInfoRepositoryImpl) Save(ctx context.Context, entity domain.TrackInfo) (domain.TrackInfo, error) {
+	col := NewTrackInfoDBSchema(entity)
 	err := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).Save(&col).Error
 	if err != nil {
-		return err
+		return entity, err
 	}
-	return nil
+	return col.ToEntity(), nil
 }
 
-func (r *trackInfoRepositoryImpl) MarkAsScrobbled(ctx context.Context, entities []domain.TrackInfo) error {
+func (r *trackInfoRepositoryImpl) MarkAsScrobbled(ctx context.Context, entities []domain.TrackInfo) (
+	[]domain.TrackInfo, error) {
 	ids := lo.Map(entities, func(t domain.TrackInfo, _ int) int { return t.ID() })
 	scrobbledAt := time.Now().UTC()
 
@@ -70,14 +71,14 @@ func (r *trackInfoRepositoryImpl) MarkAsScrobbled(ctx context.Context, entities 
 		Where("id IN ?", ids).
 		Update("scrobbled_at", scrobbledAt).Error
 	if err != nil {
-		return err
+		return entities, err
 	}
 
 	for i, entity := range entities {
-		entities[i] = *entity.MarkAsScrobbled(scrobbledAt)
+		entities[i] = entity.MarkAsScrobbled(scrobbledAt)
 	}
 
-	return nil
+	return entities, nil
 }
 
 func (r *trackInfoRepositoryImpl) Delete(ctx context.Context, id int) error {

@@ -41,10 +41,9 @@ func main() {
 		},
 	})
 
-	// do.Invoke経由で使う
-	do.Provide(injector, func(i *do.Injector) (*application.App, error) {
-		return app, nil
-	})
+	// Start nowplaying tracker
+	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
+	tracker.Run(app)
 
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "Audirvana Scrobbler",
@@ -57,14 +56,6 @@ func main() {
 		},
 		Hidden: true,
 	})
-
-	do.Provide(injector, func(i *do.Injector) (*application.WebviewWindow, error) {
-		return window, nil
-	})
-
-	// Start nowplaying tracker
-	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
-	go tracker.Execute(app)
 
 	systray := app.NewSystemTray()
 	systray.SetTemplateIcon(icons.SystrayMacTemplate)

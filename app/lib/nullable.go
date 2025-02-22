@@ -3,7 +3,7 @@ package lib
 import "github.com/samber/lo"
 
 type Nullable[T any] struct {
-	Value T
+	value T
 }
 
 func NewNullable[T any](x *T) Nullable[T] {
@@ -14,10 +14,14 @@ func NewNullableByVal[T any](x T) Nullable[T] {
 	return Nullable[T]{x}
 }
 
-func (n Nullable[T]) ToCopiedPtr() *T {
-	p := lo.EmptyableToPtr(n.Value)
+func (n Nullable[T]) Unwrap() *T {
+	p := lo.EmptyableToPtr(n.value)
 	if p == nil {
 		return nil
 	}
 	return lo.ToPtr(*p)
+}
+
+func (n Nullable[T]) Raw() T {
+	return n.value
 }

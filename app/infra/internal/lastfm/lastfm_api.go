@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/samber/do"
+	"github.com/samber/lo"
 )
 
 type lastFMAPIImpl struct {
@@ -67,6 +68,9 @@ func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) er
 }
 
 func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo) (map[string]any, error) {
+	// ScrobbleされていないTracksだけを選択
+	tracks = lo.Filter(tracks, func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt() == nil })
+
 	if len(tracks) > 50 {
 		return nil, errors.New("number of tracks is more than 50")
 	}

@@ -21,7 +21,7 @@ func NewNowPlayingTracker(i *do.Injector) (domain.NowPlayingTracker, error) {
 }
 
 func (n *nowPlayingTrackerImpl) StreamNowPlaying(
-	ctx context.Context, npChan chan<- *domain.NowPlaying, errChan chan<- error) {
+	ctx context.Context, npChan chan<- domain.NowPlaying, errChan chan<- error) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -42,16 +42,16 @@ func (n *nowPlayingTrackerImpl) StreamNowPlaying(
 	}
 }
 
-func getNowPlaying(ctx context.Context) (*domain.NowPlaying, error) {
+func getNowPlaying(ctx context.Context) (domain.NowPlaying, error) {
 	ret, err := exec.CommandContext(ctx, "osascript", "-e", script).Output()
 	if err != nil {
-		return nil, err
+		return domain.NowPlaying{}, err
 	}
 
 	var np domain.NowPlaying
 	if err := json.Unmarshal(ret, &np); err != nil {
-		return nil, nil
+		return domain.NowPlaying{}, nil
 	}
 
-	return &np, nil
+	return np, nil
 }
