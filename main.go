@@ -38,6 +38,7 @@ func main() {
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
+			ActivationPolicy: application.ActivationPolicyAccessory,
 		},
 	})
 
@@ -63,6 +64,16 @@ func main() {
 		window.Focus()
 		window.Show()
 	})
+
+	menu := app.NewMenu()
+	menu.Add("Open app").OnClick(func(ctx *application.Context) {
+		window.Focus()
+		window.Show()
+	})
+	menu.Add("Quit").OnClick(func(ctx *application.Context) {
+		app.Quit()
+	})
+	systray.SetMenu(menu)
 
 	if err := app.Run(); err != nil {
 		println("Error:", err.Error())

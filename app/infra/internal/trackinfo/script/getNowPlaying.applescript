@@ -17,7 +17,9 @@ tell application "System Events"
         set playerPosition to player position
       end if
     end tell
-  else if (exists process "Audirvana Origin") then
+  end if
+
+  if (exists process "Audirvana Origin") then
     tell application "Audirvana Origin"
       if player state is Playing then
         set appName to "Audirvana Origin"
