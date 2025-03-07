@@ -16,14 +16,14 @@ tasks:
     dir: frontend
     sources:
       - package.json
-      - package-lock.json
+      - pnpm-lock.yaml
     generates:
       - node_modules/*
     preconditions:
-      - sh: npm version
-        msg: "Looks like npm isn't installed. Npm is part of the Node installer: https://nodejs.org/en/download/"
+      - sh: pnpm --version
+        msg: "Looks like pnpm isn't installed."
     cmds:
-      - npm install
+      - pnpm install
 
   build:frontend:
     summary: Build the frontend project
@@ -36,7 +36,7 @@ tasks:
       - task: install:frontend:deps
       - task: generate:bindings
     cmds:
-      - npm run build -q
+      - pnpm run build
 
   generate:bindings:
     summary: Generates bindings for the frontend
@@ -66,7 +66,7 @@ tasks:
     deps:
       - task: install:frontend:deps
     cmds:
-      - npm run dev -- --port {{.VITE_PORT}} --strictPort
+      - pnpm run dev --port {{.VITE_PORT}} --strictPort
 
   update:build-assets:
     summary: Updates the build assets
