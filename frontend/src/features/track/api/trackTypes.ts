@@ -5,4 +5,10 @@ export type NowPlayingResponse = {
   album: string
   duration: number
   position: number
+  isAdded: boolean
+}
+
+export enum AppEvent {
+  NotifyNowPlaying = 'NotifyNowPlaying',
+  NotifyAdded = 'NotifyAdded'
 }

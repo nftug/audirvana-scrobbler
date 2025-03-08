@@ -12,7 +12,7 @@ type NowPlaying struct {
 	Duration   float64 `json:"duration"`
 	Position   float64 `json:"position"`
 	IsNotified bool
-	IsSaved    bool
+	IsAdded    bool
 }
 
 func (np NowPlaying) ToResponse() bindings.NowPlayingResponse {
@@ -23,6 +23,7 @@ func (np NowPlaying) ToResponse() bindings.NowPlayingResponse {
 		Album:    np.Album,
 		Duration: np.Duration,
 		Position: np.Position,
+		IsAdded:  np.IsAdded,
 	}
 }
 

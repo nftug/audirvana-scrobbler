@@ -1,19 +1,14 @@
-import { Theme } from '@emotion/react'
-import { Box, CircularProgress, Divider, Stack, SxProps, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeList } from 'react-window'
 import { useTrackListQuery } from '../hooks/useTrackListQuery'
 import TrackItem from './TrackItem'
 
-type TrackListProps = {
-  sx?: SxProps<Theme>
-}
-
-const TrackList = ({ sx }: TrackListProps) => {
+const TrackList = () => {
   const { data, isPending } = useTrackListQuery()
 
   return (
-    <Box sx={{ width: '100%', height: 400, bgcolor: 'background.paper', ...sx }}>
+    <Box sx={{ height: 1 }}>
       {!data?.length || isPending || !data ? (
         <Box display="flex" justifyContent="center" alignItems="center" height={1}>
           {isPending ? (

@@ -2,8 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Events } from '@wailsio/runtime'
 import { useEffect, useState } from 'react'
 import { ErrorResponse } from 'react-router-dom'
-import { usePreviousDistinct } from 'react-use'
-import { NowPlayingResponse } from '../api/trackTypes'
+import { AppEvent, NowPlayingResponse } from '../api/trackTypes'
 
 type NowPlayingEventData = [NowPlayingResponse | null, ErrorResponse | null]
 
@@ -12,32 +11,29 @@ const useNowPlaying = () => {
   const [error, setError] = useState<ErrorResponse | null>(null)
   const queryClient = useQueryClient()
 
-  const nowPlayingJson = JSON.stringify({
-    track: nowPlaying?.track,
-    album: nowPlaying?.album,
-    artist: nowPlaying?.artist
-  })
-  const prevNowPlayingJson = usePreviousDistinct(nowPlayingJson)
-
   useEffect(() => {
-    const dispose = Events.On('NotifyNowPlaying', ({ data }: { data: NowPlayingEventData }) => {
-      const [nowPlaying, error] = data
+    const disposeNowPlaying = Events.On(
+      AppEvent.NotifyNowPlaying,
+      ({ data }: { data: NowPlayingEventData }) => {
+        const [nowPlaying, error] = data
 
-      if (error) {
-        setError(error)
-        return
+        if (error) {
+          setError(error)
+          return
+        }
+        setNowPlaying(nowPlaying)
       }
-      setNowPlaying(nowPlaying)
+    )
+
+    const disposeAdded = Events.On(AppEvent.NotifyAdded, () => {
+      queryClient.refetchQueries({ queryKey: ['trackList'] })
     })
 
-    return () => dispose()
-  }, [])
-
-  useEffect(() => {
-    if (nowPlayingJson !== prevNowPlayingJson) {
-      queryClient.invalidateQueries({ queryKey: ['trackList'] })
+    return () => {
+      disposeNowPlaying()
+      disposeAdded()
     }
-  }, [nowPlayingJson, prevNowPlayingJson, queryClient])
+  }, [queryClient])
 
   return { nowPlaying, error }
 }

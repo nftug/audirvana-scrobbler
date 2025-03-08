@@ -68,7 +68,8 @@ func (t *trackNowPlayingImpl) execute(app *application.App) {
 			cfg := t.cfgProvider.Get()
 
 			// Update nowplaying
-			app.EmitEvent(bindings.NotifyNowPlaying, np, nil)
+			np.IsAdded = npPrev.IsAdded
+			app.EmitEvent(bindings.NotifyNowPlaying, np.ToResponse(), nil)
 
 			if cfg.ScrobbleImmediately && !npPrev.IsNotified {
 				if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
@@ -83,7 +84,7 @@ func (t *trackNowPlayingImpl) execute(app *application.App) {
 				lastProcessedTime = time.Now()
 
 				percentage := int(np.Position / np.Duration * 100)
-				if percentage < cfg.PositionThreshold || npPrev.IsSaved {
+				if percentage < cfg.PositionThreshold || npPrev.IsAdded {
 					continue
 				}
 
@@ -111,7 +112,8 @@ func (t *trackNowPlayingImpl) execute(app *application.App) {
 					continue
 				}
 
-				npPrev.IsSaved = true
+				npPrev.IsAdded = true
+				app.EmitEvent(bindings.NotifyAdded)
 			}
 
 			if !np.Equals(npPrev) {
