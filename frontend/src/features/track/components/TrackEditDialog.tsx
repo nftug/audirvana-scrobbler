@@ -1,37 +1,28 @@
+import CustomDialog from '@/lib/dialog/CustomDialog'
+import MessageDialog from '@/lib/dialog/MessageDialog'
 import FormTextField from '@/lib/form/FormTextField'
 import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Close, Replay, Save } from '@mui/icons-material'
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton
-} from '@mui/material'
-import { useConfirm } from 'material-ui-confirm'
+import { Box, Button, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material'
 import { createCallable } from 'react-call'
 import { FormProvider } from 'react-hook-form'
 import { useTrackEditForm } from '../hooks/useTrackEditForm'
 
-interface TrackEditModalProps {
+interface TrackEditDialogProps {
   item: TrackInfoResponse | undefined
 }
 
-const TrackEditModal = createCallable<TrackEditModalProps>(({ call, item }) => {
+const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) => {
   const [open, closeDialog] = [!call.ended, call.end]
-  const { form, mutation } = useTrackEditForm({ item, onSuccess: () => call.end() })
-  const confirm = useConfirm()
+  const { form, mutation } = useTrackEditForm({ item, onSuccess: () => closeDialog() })
 
-  const handleClose = async (_?: object, reason?: 'backdropClick' | 'escapeKeyDown') => {
-    if (reason === 'backdropClick') return
+  const handleClose = async () => {
     if (form.formState.isDirty) {
-      try {
-        await confirm({ title: 'Confirm', description: 'Discard all changes?' })
-      } catch {
-        return
-      }
+      const ok = await MessageDialog.call({
+        message: 'Discard all changes?',
+        buttonType: 'okCancel'
+      })
+      if (!ok) return
     }
     closeDialog()
   }
@@ -43,9 +34,9 @@ const TrackEditModal = createCallable<TrackEditModalProps>(({ call, item }) => {
 
   return (
     <FormProvider {...form}>
-      <Dialog
+      <CustomDialog
         open={open}
-        onClose={handleClose}
+        onCloseDialog={handleClose}
         PaperProps={{
           component: 'form',
           onSubmit: form.handleSubmit((data) => mutation.mutate(data)),
@@ -85,9 +76,9 @@ const TrackEditModal = createCallable<TrackEditModalProps>(({ call, item }) => {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+      </CustomDialog>
     </FormProvider>
   )
 }, 500)
 
-export default TrackEditModal
+export default TrackEditDialog

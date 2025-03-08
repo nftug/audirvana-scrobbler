@@ -23,8 +23,8 @@ func NewTrackInfoQueryService(i *do.Injector) (domain.TrackInfoQueryService, err
 func (q *trackInfoQueryServiceImpl) GetAll(ctx context.Context) ([]bindings.TrackInfoResponse, error) {
 	var ret []TrackInfoDBSchema
 
-	query := q.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).Where("scrobbled_at IS NULL")
-	if err := query.Order("played_at").Find(&ret).Error; err != nil {
+	query := q.db.WithContext(ctx).Model(&TrackInfoDBSchema{})
+	if err := query.Order("played_at DESC").Find(&ret).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return []bindings.TrackInfoResponse{}, nil
 		}

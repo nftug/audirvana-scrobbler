@@ -1,11 +1,11 @@
+import useErrorHandler from '@/lib/api/useErrorHandler'
 import { ErrorCode, ErrorResponse, TrackInfoForm, TrackInfoResponse } from '@bindings/app/bindings'
 import { SaveTrackInfo } from '@bindings/app/trackinfoservice'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useConfirm } from 'material-ui-confirm'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { trackInfoFieldSchema } from '../trackInfoFieldSchema'
+import { FieldPath, useForm } from 'react-hook-form'
+import { TrackFieldSchemaType, trackInfoFieldSchema } from '../api/trackInfoFieldSchema'
 
 interface UseTrackInfoFormOptions {
   item: TrackInfoResponse | undefined
@@ -14,8 +14,8 @@ interface UseTrackInfoFormOptions {
 }
 
 export const useTrackEditForm = ({ item, onSuccess, dialogOpened }: UseTrackInfoFormOptions) => {
-  const confirm = useConfirm()
   const queryClient = useQueryClient()
+  const handleError = useErrorHandler()
 
   const form = useForm({ resolver: yupResolver(trackInfoFieldSchema), mode: 'onChange' })
 
@@ -37,14 +37,12 @@ export const useTrackEditForm = ({ item, onSuccess, dialogOpened }: UseTrackInfo
     onError: (error: ErrorResponse) => {
       if (error.code === ErrorCode.ValidationError && error.data) {
         for (const errorItem of error.data) {
-          form.setError(errorItem.field as any, { message: errorItem.message })
+          form.setError(errorItem.field as FieldPath<TrackFieldSchemaType>, {
+            message: errorItem.message
+          })
         }
       } else {
-        confirm({
-          title: 'Error',
-          description: error.data?.at(0)?.message ?? error.code,
-          hideCancelButton: true
-        })
+        handleError(error)
       }
     }
   })

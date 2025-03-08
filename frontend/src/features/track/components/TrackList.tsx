@@ -1,15 +1,13 @@
-import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Theme } from '@emotion/react'
 import { Box, CircularProgress, List, ListItem, Stack, SxProps, Typography } from '@mui/material'
 import { useTrackListQuery } from '../hooks/useTrackListQuery'
 import TrackItem from './TrackItem'
 
 type TrackListProps = {
-  onClickDelete: (item: TrackInfoResponse) => void
   sx?: SxProps<Theme>
 }
 
-const TrackList = ({ onClickDelete, sx }: TrackListProps) => {
+const TrackList = ({ sx }: TrackListProps) => {
   const { data, isPending } = useTrackListQuery()
 
   return (
@@ -32,7 +30,7 @@ const TrackList = ({ onClickDelete, sx }: TrackListProps) => {
       ) : (
         data.map((item) => (
           <ListItem key={item.id}>
-            <TrackItem item={item} onClickDelete={onClickDelete} />
+            <TrackItem track={item} />
           </ListItem>
         ))
       )}

@@ -1,4 +1,4 @@
-interface NowPlayingResponse {
+export type NowPlayingResponse = {
   appName: string
   track: string
   artist: string

@@ -40,7 +40,7 @@ func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]domain.TrackInf
 func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (domain.TrackInfo, error) {
 	var ret TrackInfoDBSchema
 
-	query := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).Where("scrobbled_at IS NULL")
+	query := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{})
 	if err := query.First(&ret).Error; err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:

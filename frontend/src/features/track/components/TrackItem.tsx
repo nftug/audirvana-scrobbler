@@ -3,33 +3,35 @@ import { overflowEllipsisStyle } from '@/lib/layout/styles'
 import { TrackInfoResponse } from '@bindings/app/bindings'
 import { Delete, Edit } from '@mui/icons-material'
 import { Box, Button, Card, CardActions, CardContent, Stack, Typography } from '@mui/material'
-import TrackEditModal from './TrackEditModal'
+import { useDeleteTrackDialog } from '../hooks/useDeleteTrack'
+import TrackEditDialog from './TrackEditDialog'
 
 type TrackItemProps = {
-  item: TrackInfoResponse
-  onClickDelete: (item: TrackInfoResponse) => void
+  track: TrackInfoResponse
 }
 
-const TrackItem = ({ item, onClickDelete }: TrackItemProps) => {
+const TrackItem = ({ track }: TrackItemProps) => {
+  const showDeleteTrackDialog = useDeleteTrackDialog()
+
   return (
     <Card sx={{ marginBottom: '10px', width: 1 }}>
       <CardContent>
         <Box sx={{ display: 'flex', width: 1, alignContent: 'center' }}>
           <Stack sx={{ flexGrow: 1 }}>
             <Typography variant="body2" sx={overflowEllipsisStyle}>
-              {item.track}
+              {track.track}
             </Typography>
             <Typography variant="body2" color="textSecondary" sx={overflowEllipsisStyle}>
-              {item.artist ?? 'No artist'}
+              {track.artist ?? 'No artist'}
             </Typography>
           </Stack>
 
           <Stack sx={{ width: 150 }}>
             <Typography variant="body2" color="textSecondary" sx={overflowEllipsisStyle}>
-              {formatDateTime(item.playedAt)}
+              {formatDateTime(track.playedAt)}
             </Typography>
             <Typography variant="body2" color="textSecondary" sx={overflowEllipsisStyle}>
-              {item.album ?? 'No album'}
+              {track.album ?? 'No album'}
             </Typography>
           </Stack>
         </Box>
@@ -39,15 +41,16 @@ const TrackItem = ({ item, onClickDelete }: TrackItemProps) => {
         <Button
           size="small"
           color="primary"
-          onClick={() => TrackEditModal.call({ item })}
+          onClick={() => TrackEditDialog.call({ item: track })}
           startIcon={<Edit />}
+          disabled={!!track.scrobbledAt}
         >
           Edit
         </Button>
         <Button
           size="small"
           color="error"
-          onClick={() => onClickDelete(item)}
+          onClick={() => showDeleteTrackDialog(track)}
           startIcon={<Delete />}
         >
           Delete

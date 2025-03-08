@@ -6,3 +6,5 @@ export const trackInfoFieldSchema = yup.object<TrackInfoForm>().shape({
   album: yup.string().required(),
   track: yup.string().required()
 })
+
+export type TrackFieldSchemaType = yup.InferType<typeof trackInfoFieldSchema>

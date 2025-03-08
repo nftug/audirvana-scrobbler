@@ -1,53 +1,22 @@
 import TrackList from '@/features/track/components/TrackList'
-import { useDeleteTrackMutation } from '@/features/track/hooks/useDeleteTrackMutation'
+import TrackListAppBar from '@/features/track/components/TrackListAppBar'
 import useNowPlaying from '@/features/track/hooks/useNowPlaying'
 import { fullViewHeightStyle, overflowEllipsisStyle } from '@/lib/layout/styles'
-import { TrackInfoResponse } from '@bindings/app/bindings'
-import {
-  Box,
-  Card,
-  CardContent,
-  DialogContentText,
-  List,
-  ListItem,
-  Typography
-} from '@mui/material'
-import { useConfirm } from 'material-ui-confirm'
+import { Box, Card, CardContent, Typography } from '@mui/material'
 import { useEffect } from 'react'
 
 const IndexPage = () => {
-  const confirm = useConfirm()
-  const deleteTrack = useDeleteTrackMutation()
-
   const { nowPlaying, error } = useNowPlaying()
+
   useEffect(() => {
+    if (!error) return
     console.error(error)
   }, [error])
 
-  const onClickDelete = async (item: TrackInfoResponse) => {
-    try {
-      await confirm({
-        title: 'Confirm',
-        content: (
-          <DialogContentText sx={overflowEllipsisStyle}>
-            Delete this track?
-            <List>
-              <ListItem>Artist: {item.artist}</ListItem>
-              <ListItem>Album: {item.album}</ListItem>
-              <ListItem>Track: {item.track}</ListItem>
-            </List>
-          </DialogContentText>
-        )
-      })
-    } catch {
-      return
-    }
-
-    deleteTrack.mutate(item.id)
-  }
-
   return (
     <Box sx={fullViewHeightStyle}>
+      <TrackListAppBar />
+
       <Card sx={{ width: 1, overflowX: 'hidden', mb: 5 }}>
         <CardContent>
           {nowPlaying ? (
@@ -71,7 +40,7 @@ const IndexPage = () => {
         </CardContent>
       </Card>
 
-      <TrackList sx={{ height: 0.8 }} onClickDelete={onClickDelete} />
+      <TrackList sx={{ height: 0.8 }} />
     </Box>
   )
 }

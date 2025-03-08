@@ -1,6 +1,7 @@
 import { Events } from '@wailsio/runtime'
 import { useEffect, useState } from 'react'
 import { ErrorResponse } from 'react-router-dom'
+import { NowPlayingResponse } from '../api/trackTypes'
 
 type NowPlayingEventData = [NowPlayingResponse | null, ErrorResponse | null]
 
