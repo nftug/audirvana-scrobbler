@@ -60,14 +60,16 @@ func (t *trackNowPlayingImpl) execute(app *application.App) {
 	for {
 		select {
 		case np := <-npChan:
-			app.EmitEvent(bindings.NotifyNowPlaying, np, nil)
 			if lo.IsEmpty(np) || !t.lastfm.IsLoggedIn() {
+				app.EmitEvent(bindings.NotifyNowPlaying, nil, nil)
 				continue
 			}
 
 			cfg := t.cfgProvider.Get()
 
 			// Update nowplaying
+			app.EmitEvent(bindings.NotifyNowPlaying, np, nil)
+
 			if cfg.ScrobbleImmediately && !npPrev.IsNotified {
 				if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
 					t.notifyError(app, "failed to update nowplaying: %v", err)

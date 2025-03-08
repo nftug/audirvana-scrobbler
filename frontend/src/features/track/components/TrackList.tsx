@@ -1,5 +1,7 @@
 import { Theme } from '@emotion/react'
-import { Box, CircularProgress, List, ListItem, Stack, SxProps, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider, Stack, SxProps, Typography } from '@mui/material'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import { FixedSizeList } from 'react-window'
 import { useTrackListQuery } from '../hooks/useTrackListQuery'
 import TrackItem from './TrackItem'
 
@@ -11,8 +13,8 @@ const TrackList = ({ sx }: TrackListProps) => {
   const { data, isPending } = useTrackListQuery()
 
   return (
-    <List sx={sx}>
-      {!data?.length || isPending ? (
+    <Box sx={{ width: '100%', height: 400, bgcolor: 'background.paper', ...sx }}>
+      {!data?.length || isPending || !data ? (
         <Box display="flex" justifyContent="center" alignItems="center" height={1}>
           {isPending ? (
             <Stack display="flex" justifyContent="center" alignItems="center" spacing={3}>
@@ -28,13 +30,20 @@ const TrackList = ({ sx }: TrackListProps) => {
           )}
         </Box>
       ) : (
-        data.map((item) => (
-          <ListItem key={item.id}>
-            <TrackItem track={item} />
-          </ListItem>
-        ))
+        <AutoSizer>
+          {({ width, height }) => (
+            <FixedSizeList width={width} height={height} itemSize={100} itemCount={data.length}>
+              {({ index, style }) => (
+                <Stack key={index} style={style} spacing={1}>
+                  {<TrackItem track={data[index]} />}
+                  {data && index < data?.length - 1 && <Divider />}
+                </Stack>
+              )}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
       )}
-    </List>
+    </Box>
   )
 }
 
