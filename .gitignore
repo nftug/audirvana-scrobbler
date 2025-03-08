@@ -8,3 +8,4 @@ cover.out
 
 package.json.md5
 .task/
+frontend/bindings/*
