@@ -24,7 +24,7 @@ const TrackNowPlaying = () => {
         <Typography sx={{ color: 'text.secondary', ...overflowEllipsisStyle }}>
           {!nowPlaying
             ? 'N/A'
-            : `${nowPlaying.artist ?? 'No artist'} - ${nowPlaying.album ?? 'No album'}`}
+            : `${nowPlaying.artist ?? 'No artist'} ― ${nowPlaying.album ?? 'No album'}`}
         </Typography>
       </CardContent>
     </Card>

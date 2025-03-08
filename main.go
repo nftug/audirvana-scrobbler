@@ -44,7 +44,7 @@ func main() {
 
 	// Start nowplaying tracker
 	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
-	tracker.Run(app)
+	go tracker.Execute(app)
 
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "Audirvana Scrobbler",
@@ -58,17 +58,19 @@ func main() {
 		Hidden: true,
 	})
 
-	systray := app.NewSystemTray()
-	systray.SetTemplateIcon(icons.SystrayMacTemplate)
-	systray.OnClick(func() {
+	showWindow := func() {
+		// window.SetURL("/")
 		window.Focus()
 		window.Show()
-	})
+	}
+
+	systray := app.NewSystemTray()
+	systray.SetTemplateIcon(icons.SystrayMacTemplate)
+	systray.OnClick(showWindow)
 
 	menu := app.NewMenu()
 	menu.Add("Open app").OnClick(func(ctx *application.Context) {
-		window.Focus()
-		window.Show()
+		showWindow()
 	})
 	menu.Add("Quit").OnClick(func(ctx *application.Context) {
 		app.Quit()

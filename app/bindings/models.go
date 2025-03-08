@@ -22,5 +22,4 @@ type NowPlayingResponse struct {
 	Album    string  `json:"album"`
 	Duration float64 `json:"duration"`
 	Position float64 `json:"position"`
-	IsAdded  bool    `json:"isAdded"`
 }

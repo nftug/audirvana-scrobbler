@@ -27,11 +27,17 @@ const TrackList = () => {
       ) : (
         <AutoSizer>
           {({ width, height }) => (
-            <FixedSizeList width={width} height={height} itemSize={100} itemCount={data.length}>
+            <FixedSizeList
+              width={width}
+              height={height}
+              itemSize={100}
+              itemCount={data.length}
+              style={{ scrollbarWidth: 'thin' }}
+            >
               {({ index, style }) => (
                 <Stack key={index} style={style} spacing={1}>
                   {<TrackItem track={data[index]} />}
-                  {data && index < data?.length - 1 && <Divider />}
+                  {index < data.length - 1 && <Divider />}
                 </Stack>
               )}
             </FixedSizeList>

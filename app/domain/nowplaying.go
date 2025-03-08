@@ -23,7 +23,6 @@ func (np NowPlaying) ToResponse() bindings.NowPlayingResponse {
 		Album:    np.Album,
 		Duration: np.Duration,
 		Position: np.Position,
-		IsAdded:  np.IsAdded,
 	}
 }
 

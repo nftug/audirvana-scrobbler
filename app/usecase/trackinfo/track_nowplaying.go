@@ -9,13 +9,15 @@ import (
 	"log"
 	"time"
 
+	"sync"
+
 	"github.com/samber/do"
 	"github.com/samber/lo"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type TrackNowPlaying interface {
-	Run(app *application.App)
+	Execute(app *application.App)
 }
 
 type trackNowPlayingImpl struct {
@@ -23,6 +25,9 @@ type trackNowPlayingImpl struct {
 	tracker     domain.NowPlayingTracker
 	lastfm      domain.LastFMAPI
 	cfgProvider domain.ConfigProvider
+	app         *application.App
+	mutex       sync.Mutex
+	npPrev      domain.NowPlaying
 }
 
 func NewTrackNowPlaying(i *do.Injector) (TrackNowPlaying, error) {
@@ -31,16 +36,16 @@ func NewTrackNowPlaying(i *do.Injector) (TrackNowPlaying, error) {
 		tracker:     do.MustInvoke[domain.NowPlayingTracker](i),
 		lastfm:      do.MustInvoke[domain.LastFMAPI](i),
 		cfgProvider: do.MustInvoke[domain.ConfigProvider](i),
+		mutex:       sync.Mutex{},
+		npPrev:      domain.NowPlaying{},
 	}, nil
 }
 
-func (t *trackNowPlayingImpl) Run(app *application.App) {
-	go t.execute(app)
-}
-
-func (t *trackNowPlayingImpl) execute(app *application.App) {
+func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	t.app = app
 
 	npChan := make(chan domain.NowPlaying, 5)
 	errChan := make(chan error, 5)
@@ -50,83 +55,80 @@ func (t *trackNowPlayingImpl) execute(app *application.App) {
 	cfg := t.cfgProvider.Get()
 	if !t.lastfm.IsLoggedIn() {
 		if err := t.lastfm.Login(ctx, cfg.UserName, cfg.Password); err != nil {
-			t.notifyError(app, "failed to login: %v", err)
+			t.notifyError("failed to login: %v", err)
 		}
 	}
-
-	npPrev := domain.NowPlaying{}
-	lastProcessedTime := time.Now()
 
 	for {
 		select {
 		case np := <-npChan:
-			if lo.IsEmpty(np) || !t.lastfm.IsLoggedIn() {
-				app.EmitEvent(bindings.NotifyNowPlaying, nil, nil)
-				continue
-			}
-
-			cfg := t.cfgProvider.Get()
-
-			// Update nowplaying
-			np.IsAdded = npPrev.IsAdded
-			app.EmitEvent(bindings.NotifyNowPlaying, np.ToResponse(), nil)
-
-			if cfg.ScrobbleImmediately && !npPrev.IsNotified {
-				if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
-					t.notifyError(app, "failed to update nowplaying: %v", err)
-				}
-				npPrev.IsNotified = true
-			}
-
-			// Update scrobble log
-			// 5秒間隔で実行する
-			if time.Since(lastProcessedTime) >= 5*time.Second {
-				lastProcessedTime = time.Now()
-
-				percentage := int(np.Position / np.Duration * 100)
-				if percentage < cfg.PositionThreshold || npPrev.IsAdded {
-					continue
-				}
-
-				track := domain.CreateTrackInfo(np, time.Now().UTC())
-
-				// Scrobble
-				if cfg.ScrobbleImmediately {
-					tracks := []domain.TrackInfo{track}
-					ret, err := t.lastfm.Scrobble(ctx, tracks)
-					if err != nil {
-						t.notifyError(app, "scrobbling failed: %v", err)
-						continue
-					}
-
-					// For debug
-					b, _ := json.Marshal(ret)
-					log.Println("track.scrobble response: ", string(b))
-
-					track = track.MarkAsScrobbled(time.Now().UTC())
-				}
-
-				// Save
-				if _, err := t.repo.Save(ctx, track); err != nil {
-					t.notifyError(app, "failed to save play log: %v", err)
-					continue
-				}
-
-				npPrev.IsAdded = true
-				app.EmitEvent(bindings.NotifyAdded)
-			}
-
-			if !np.Equals(npPrev) {
-				npPrev = np
-			}
-
+			t.processNowPlaying(ctx, np)
 		case err := <-errChan:
 			fmt.Printf("Error: %v\n", err)
-			t.notifyError(app, "error while getting nowplaying: %v", err)
+			t.notifyError("error while getting nowplaying: %v", err)
 		}
 	}
 }
 
-func (t *trackNowPlayingImpl) notifyError(app *application.App, format string, a ...any) {
-	app.EmitEvent(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
+func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, np domain.NowPlaying) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if lo.IsEmpty(np) {
+		t.app.EmitEvent(bindings.NotifyNowPlaying, nil, nil)
+		return
+	}
+
+	cfg := t.cfgProvider.Get()
+	shouldScrobble := t.lastfm.IsLoggedIn() && cfg.ScrobbleImmediately
+
+	// Update nowplaying
+	t.app.EmitEvent(bindings.NotifyNowPlaying, np.ToResponse(), nil)
+
+	if shouldScrobble && !t.npPrev.IsNotified {
+		if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
+			t.notifyError("failed to update nowplaying: %v", err)
+		}
+		t.npPrev.IsNotified = true
+	}
+
+	// Update scrobble log
+	percentage := int(np.Position / np.Duration * 100)
+	if percentage >= cfg.PositionThreshold && !t.npPrev.IsAdded {
+		track := domain.CreateTrackInfo(np, time.Now().UTC())
+
+		// Scrobble
+		if shouldScrobble {
+			ret, err := t.lastfm.Scrobble(ctx, []domain.TrackInfo{track})
+			if err != nil {
+				t.notifyError("scrobbling failed: %v", err)
+			} else {
+				track = track.MarkAsScrobbled(time.Now().UTC())
+			}
+
+			// For debug
+			b, _ := json.Marshal(ret)
+			log.Println("track.scrobble response: ", string(b))
+		}
+
+		// Save
+		if _, err := t.repo.Save(ctx, track); err != nil {
+			t.notifyError("failed to save play log: %v", err)
+			return
+		}
+
+		t.app.EmitEvent(bindings.NotifyAdded)
+	}
+
+	// Update npPrev
+	if !np.Equals(t.npPrev) {
+		t.npPrev = np
+	}
+	if percentage >= cfg.PositionThreshold {
+		t.npPrev.IsAdded = true
+	}
+}
+
+func (t *trackNowPlayingImpl) notifyError(format string, a ...any) {
+	t.app.EmitEvent(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
 }

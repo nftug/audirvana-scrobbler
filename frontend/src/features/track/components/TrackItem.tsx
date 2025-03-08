@@ -40,10 +40,10 @@ const TrackItem = ({ track }: TrackItemProps) => {
         <Audiotrack color={scrobbled ? 'disabled' : 'inherit'} />
       </ListItemIcon>
       <ListItemText
-        primary={`${track.artist ?? 'No artist'} - ${track.track}`}
+        primary={track.track}
         secondary={
           <Stack spacing={0.2} sx={{ color: scrobbled ? 'text.disabled' : 'text.body2' }}>
-            <Typography variant="body2">{track.album ?? 'No album'}</Typography>
+            <Typography variant="body2">{`${track.artist ?? 'No artits'} ― ${track.album ?? 'No album'}`}</Typography>
             <Typography variant="body2">{formatDateTime(track.playedAt)}</Typography>
           </Stack>
         }
