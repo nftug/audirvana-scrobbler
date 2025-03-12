@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { FieldPath, useForm } from 'react-hook-form'
 import { TrackFieldSchemaType, trackInfoFieldSchema } from '../api/trackInfoFieldSchema'
+import { getTrackListQueryKey } from './useTrackListQuery'
 
 interface UseTrackInfoFormOptions {
   item: TrackInfoResponse | undefined
@@ -30,7 +31,7 @@ export const useTrackEditForm = ({ item, onSuccess, dialogOpened }: UseTrackInfo
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trackList'] })
+      queryClient.invalidateQueries({ queryKey: getTrackListQueryKey() })
       onSuccess()
       setTimeout(() => mutation.reset(), 100)
     },

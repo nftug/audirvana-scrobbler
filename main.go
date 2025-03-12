@@ -42,7 +42,7 @@ func main() {
 		},
 	})
 
-	// Start nowplaying tracker
+	// Start now playing tracker
 	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
 	go tracker.Execute(app)
 

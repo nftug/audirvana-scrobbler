@@ -27,8 +27,10 @@ type ConfigProvider interface {
 }
 
 type LastFMAPI interface {
+	GetSessionKey(ctx context.Context, username, password string) (string, error)
+	LoginWithSessionKey(sessionKey string) error
+	RemoveSessionKey()
 	IsLoggedIn() bool
-	Login(ctx context.Context, username, password string) error
 	Scrobble(ctx context.Context, tracks []TrackInfo) (map[string]any, error)
 	UpdateNowPlaying(ctx context.Context, np NowPlaying) (map[string]any, error)
 }

@@ -7,6 +7,7 @@ import IndexPage from '@/pages/IndexPage'
 import SettingsPage from '@/pages/SettingsPage'
 import { Box, createTheme, CssBaseline, ThemeProvider, Toolbar } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SnackbarProvider } from 'notistack'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 const theme = createTheme({ colorSchemes: { dark: true } })
@@ -24,23 +25,28 @@ const App = () => {
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <QueryClientProvider client={queryClient}>
-          <HeaderProvider>
-            <TheHeader />
-            <TheDrawer />
-          </HeaderProvider>
+        <SnackbarProvider
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          preventDuplicate
+        >
+          <QueryClientProvider client={queryClient}>
+            <HeaderProvider>
+              <TheHeader />
+              <TheDrawer />
+            </HeaderProvider>
 
-          <DialogProvider />
+            <DialogProvider />
 
-          <Box component="main">
-            <Toolbar />
-            <Routes>
-              <Route index element={<IndexPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
-          </Box>
-        </QueryClientProvider>
+            <Box component="main">
+              <Toolbar />
+              <Routes>
+                <Route index element={<IndexPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </Box>
+          </QueryClientProvider>
+        </SnackbarProvider>
       </ThemeProvider>
     </BrowserRouter>
   )

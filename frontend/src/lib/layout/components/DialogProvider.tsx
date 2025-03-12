@@ -1,3 +1,4 @@
+import LoginDialog from '@/features/settings/components/LoginDialog'
 import TrackEditDialog from '@/features/track/components/TrackEditDialog'
 import MessageDialog from '@/lib/dialog/MessageDialog'
 
@@ -6,6 +7,7 @@ const DialogProvider = () => {
     <>
       <MessageDialog.Root />
       <TrackEditDialog.Root />
+      <LoginDialog.Root />
     </>
   )
 }

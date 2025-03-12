@@ -4,9 +4,11 @@ import { GetTrackInfoList } from '@bindings/app/trackinfoservice'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
+export const getTrackListQueryKey = () => ['trackList'] as const
+
 export const useTrackListQuery = () => {
   const { data, error, isPending } = useQuery<TrackInfoResponse[], ErrorResponse>({
-    queryKey: ['trackList'],
+    queryKey: getTrackListQueryKey(),
     queryFn: async () => {
       const [data, error] = await GetTrackInfoList()
       if (error) throw error

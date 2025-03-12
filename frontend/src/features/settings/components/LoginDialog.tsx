@@ -1,31 +1,15 @@
 import CustomDialog from '@/lib/dialog/CustomDialog'
-import MessageDialog from '@/lib/dialog/MessageDialog'
 import FormTextField from '@/lib/form/FormTextField'
-import { TrackInfoResponse } from '@bindings/app/bindings'
-import { Close, Replay, Save } from '@mui/icons-material'
+import { Close, Login, Replay } from '@mui/icons-material'
 import { Box, Button, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material'
 import { createCallable } from 'react-call'
 import { FormProvider } from 'react-hook-form'
-import { useTrackEditForm } from '../hooks/useTrackEditForm'
+import { useLoginForm } from '../api/useLoginForm'
 
-interface TrackEditDialogProps {
-  item: TrackInfoResponse | undefined
-}
-
-const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) => {
+const LoginDialog = createCallable(({ call }) => {
   const [open, closeDialog] = [!call.ended, call.end]
-  const { form, mutation } = useTrackEditForm({ item, onSuccess: () => closeDialog() })
 
-  const handleClose = async () => {
-    if (form.formState.isDirty) {
-      const ok = await MessageDialog.call({
-        message: 'Discard all changes?',
-        buttonType: 'okCancel'
-      })
-      if (!ok) return
-    }
-    closeDialog()
-  }
+  const { form, mutation } = useLoginForm({ onSuccess: closeDialog })
 
   const onReset = (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +20,7 @@ const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) =>
     <FormProvider {...form}>
       <CustomDialog
         open={open}
-        onCloseDialog={handleClose}
+        onCloseDialog={closeDialog}
         slotProps={{
           paper: {
             component: 'form',
@@ -47,10 +31,10 @@ const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) =>
       >
         <DialogTitle sx={{ m: 0, p: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            Edit the track
+            Login
             <IconButton
               aria-label="close"
-              onClick={handleClose}
+              onClick={() => closeDialog()}
               sx={(theme) => ({ color: theme.palette.grey[500] })}
               children={<Close />}
               title="Close"
@@ -58,10 +42,15 @@ const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) =>
           </Box>
         </DialogTitle>
 
-        <DialogContent dividers>
-          <FormTextField name="artist" label="Artist" fullWidth margin="normal" />
-          <FormTextField name="album" label="Album" fullWidth margin="normal" />
-          <FormTextField name="track" label="Track" fullWidth margin="normal" />
+        <DialogContent>
+          <FormTextField name="username" label="User name" fullWidth margin="normal" />
+          <FormTextField
+            name="password"
+            label="Password"
+            fullWidth
+            margin="normal"
+            type="password"
+          />
         </DialogContent>
 
         <DialogActions>
@@ -72,10 +61,10 @@ const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) =>
             type="submit"
             variant="contained"
             color="primary"
-            startIcon={<Save />}
+            startIcon={<Login />}
             disabled={!form.formState.isValid || mutation.isPending}
           >
-            Save
+            Login
           </Button>
         </DialogActions>
       </CustomDialog>
@@ -83,4 +72,4 @@ const TrackEditDialog = createCallable<TrackEditDialogProps>(({ call, item }) =>
   )
 }, 500)
 
-export default TrackEditDialog
+export default LoginDialog

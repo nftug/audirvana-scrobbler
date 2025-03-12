@@ -52,13 +52,6 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 
 	go t.tracker.StreamNowPlaying(ctx, npChan, errChan)
 
-	cfg := t.cfgProvider.Get()
-	if !t.lastfm.IsLoggedIn() {
-		if err := t.lastfm.Login(ctx, cfg.UserName, cfg.Password); err != nil {
-			t.notifyError("failed to login: %v", err)
-		}
-	}
-
 	for {
 		select {
 		case np := <-npChan:
@@ -82,26 +75,28 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, np domain.N
 	cfg := t.cfgProvider.Get()
 	shouldScrobble := t.lastfm.IsLoggedIn() && cfg.ScrobbleImmediately
 
-	// Update nowplaying
+	// Update now playing
 	t.app.EmitEvent(bindings.NotifyNowPlaying, np.ToResponse(), nil)
 
 	if shouldScrobble && !t.npPrev.IsNotified {
 		if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
-			t.notifyError("failed to update nowplaying: %v", err)
+			t.notifyError("failed to update now playing: %v", err)
 		}
 		t.npPrev.IsNotified = true
 	}
 
 	// Update scrobble log
 	percentage := int(np.Position / np.Duration * 100)
-	if percentage >= cfg.PositionThreshold && !t.npPrev.IsAdded {
+	shouldAdd := percentage >= cfg.PositionThreshold && !t.npPrev.IsAdded
+
+	if shouldAdd {
 		track := domain.CreateTrackInfo(np, time.Now().UTC())
 
 		// Scrobble
 		if shouldScrobble {
 			ret, err := t.lastfm.Scrobble(ctx, []domain.TrackInfo{track})
 			if err != nil {
-				t.notifyError("scrobbling failed: %v", err)
+				t.notifyError("scrobble failed: %v", err)
 			} else {
 				track = track.MarkAsScrobbled(time.Now().UTC())
 			}
@@ -124,7 +119,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, np domain.N
 	if !np.Equals(t.npPrev) {
 		t.npPrev = np
 	}
-	if percentage >= cfg.PositionThreshold {
+	if shouldAdd {
 		t.npPrev.IsAdded = true
 	}
 }

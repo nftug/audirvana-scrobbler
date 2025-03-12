@@ -39,3 +39,7 @@ func NewInternalError(format string, a ...any) *ErrorResponse {
 func NewNotFoundError() *ErrorResponse {
 	return &ErrorResponse{Code: NotFoundError}
 }
+
+func NewNotLoggedInError() *ErrorResponse {
+	return &ErrorResponse{Code: NotLoggedIn}
+}

@@ -3,8 +3,7 @@ package domain
 type Config struct {
 	APIKey              string `json:"apiKey"`
 	APISecret           string `json:"apiSecret"`
-	UserName            string `json:"userName"`
-	Password            string `json:"password"`
+	SessionKey          string `json:"sessionKey"`
 	ScrobbleImmediately bool   `json:"scrobbleImmediately"`
 	PositionThreshold   int    `json:"positionThreshold"`
 }

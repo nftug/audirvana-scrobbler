@@ -15,15 +15,12 @@ type ScrobbleAll interface {
 }
 
 type scrobbleAllImpl struct {
-	cfg    domain.Config
 	repo   domain.TrackInfoRepository
 	lastfm domain.LastFMAPI
 }
 
 func NewScrobbleAll(i *do.Injector) (ScrobbleAll, error) {
-	cfgProvider := do.MustInvoke[domain.ConfigProvider](i)
 	return &scrobbleAllImpl{
-		cfg:    cfgProvider.Get(),
 		repo:   do.MustInvoke[domain.TrackInfoRepository](i),
 		lastfm: do.MustInvoke[domain.LastFMAPI](i),
 	}, nil
@@ -40,9 +37,7 @@ func (s scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 	tracks = lo.Filter(tracks, func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt() == nil })
 
 	if !s.lastfm.IsLoggedIn() {
-		if err := s.lastfm.Login(ctx, s.cfg.UserName, s.cfg.Password); err != nil {
-			return bindings.NewInternalError("Failed to login: %v", err)
-		}
+		return bindings.NewNotLoggedInError()
 	}
 
 	chunks := lo.Chunk(tracks, 50)

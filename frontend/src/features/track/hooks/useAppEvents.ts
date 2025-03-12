@@ -3,10 +3,11 @@ import { Events } from '@wailsio/runtime'
 import { useEffect, useState } from 'react'
 import { ErrorResponse } from 'react-router-dom'
 import { AppEvent, NowPlayingResponse } from '../api/trackTypes'
+import { getTrackListQueryKey } from './useTrackListQuery'
 
 type NowPlayingEventData = [NowPlayingResponse | null, ErrorResponse | null]
 
-const useNowPlaying = () => {
+const useAppEvents = () => {
   const [nowPlaying, setNowPlaying] = useState<NowPlayingResponse | null>(null)
   const [error, setError] = useState<ErrorResponse | null>(null)
   const queryClient = useQueryClient()
@@ -26,7 +27,7 @@ const useNowPlaying = () => {
     )
 
     const disposeAdded = Events.On(AppEvent.NotifyAdded, () => {
-      queryClient.refetchQueries({ queryKey: ['trackList'] })
+      queryClient.refetchQueries({ queryKey: getTrackListQueryKey() })
     })
 
     return () => {
@@ -38,4 +39,4 @@ const useNowPlaying = () => {
   return { nowPlaying, error }
 }
 
-export default useNowPlaying
+export default useAppEvents

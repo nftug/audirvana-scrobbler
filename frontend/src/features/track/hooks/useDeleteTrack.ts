@@ -6,6 +6,7 @@ import { Delete } from '@mui/icons-material'
 import { Stack, Table, TableBody, TableCell, TableRow, Typography } from '@mui/material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createElement } from 'react'
+import { getTrackListQueryKey } from './useTrackListQuery'
 
 const useDeleteTrack = () => {
   const handleError = useErrorHandler()
@@ -17,7 +18,7 @@ const useDeleteTrack = () => {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trackList'] })
+      queryClient.invalidateQueries({ queryKey: getTrackListQueryKey() })
     },
     onError: handleError
   })

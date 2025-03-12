@@ -34,12 +34,12 @@ func NewLastFMAPI(i *do.Injector) (domain.LastFMAPI, error) {
 
 func (l *lastFMAPIImpl) IsLoggedIn() bool { return l.sessionKey != "" }
 
-func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) error {
+func (l *lastFMAPIImpl) GetSessionKey(ctx context.Context, username, password string) (string, error) {
 	if username == "" {
-		return errors.New("username is empty")
+		return "", errors.New("username is empty")
 	}
 	if password == "" {
-		return errors.New("password is empty")
+		return "", errors.New("password is empty")
 	}
 
 	params := map[string]string{
@@ -47,24 +47,35 @@ func (l *lastFMAPIImpl) Login(ctx context.Context, username, password string) er
 		"password": password,
 	}
 
-	result, err := l.callPostWithoutSk(ctx, "auth.getmobilesession", params)
+	result, err := l.callPostWithoutSk(ctx, "auth.getMobileSession", params)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	session, ok := result["session"].(map[string]any)
 	if !ok {
 		errBody, _ := json.Marshal(result)
-		return fmt.Errorf("invalid response: %v", string(errBody))
+		return "", fmt.Errorf("invalid response: %v", string(errBody))
 	}
 	key, ok := session["key"].(string)
 	if !ok {
-		return errors.New("session key not found")
+		return "", errors.New("session key not found")
 	}
 
-	l.sessionKey = key
+	return key, nil
+}
 
+func (l *lastFMAPIImpl) LoginWithSessionKey(sessionKey string) error {
+	if sessionKey == "" {
+		return errors.New("session key is empty")
+	}
+
+	l.sessionKey = sessionKey
 	return nil
+}
+
+func (l *lastFMAPIImpl) RemoveSessionKey() {
+	l.sessionKey = ""
 }
 
 func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo) (map[string]any, error) {

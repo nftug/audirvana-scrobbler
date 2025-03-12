@@ -1,10 +1,10 @@
 import { overflowEllipsisStyle } from '@/lib/layout/styles'
 import { Card, CardContent, Stack, Typography } from '@mui/material'
 import { useEffect } from 'react'
-import useNowPlaying from '../hooks/useNowPlaying'
+import useAppEvents from '../hooks/useAppEvents'
 
 const TrackNowPlaying = () => {
-  const { nowPlaying, error } = useNowPlaying()
+  const { nowPlaying, error } = useAppEvents()
 
   useEffect(() => {
     if (!error) return

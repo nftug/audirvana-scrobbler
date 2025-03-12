@@ -1,3 +1,4 @@
+import ToggleLoginSettings from '@/features/settings/components/ToggleLoginSettings'
 import {
   Container,
   FormControl,
@@ -12,9 +13,6 @@ import {
 
 const SettingsPage: React.FC = () => {
   const { mode, setMode } = useColorScheme()
-  if (!mode) {
-    return null
-  }
 
   return (
     <Container sx={{ marginTop: 5 }}>
@@ -23,16 +21,20 @@ const SettingsPage: React.FC = () => {
 
         <FormControl>
           <FormLabel>Theme</FormLabel>
-          <RadioGroup
-            row
-            value={mode}
-            onChange={(event) => setMode(event.target.value as 'system' | 'light' | 'dark')}
-          >
-            <FormControlLabel value="system" control={<Radio />} label="System" />
-            <FormControlLabel value="light" control={<Radio />} label="Light mode" />
-            <FormControlLabel value="dark" control={<Radio />} label="Dark mode" />
-          </RadioGroup>
+          {mode && (
+            <RadioGroup
+              row
+              value={mode}
+              onChange={(event) => setMode(event.target.value as 'system' | 'light' | 'dark')}
+            >
+              <FormControlLabel value="system" control={<Radio />} label="System" />
+              <FormControlLabel value="light" control={<Radio />} label="Light mode" />
+              <FormControlLabel value="dark" control={<Radio />} label="Dark mode" />
+            </RadioGroup>
+          )}
         </FormControl>
+
+        <ToggleLoginSettings />
       </Stack>
     </Container>
   )
