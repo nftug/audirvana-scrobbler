@@ -9,5 +9,5 @@ export const overflowEllipsisStyle: SxProps<Theme> = {
 } as const
 
 export const fullViewHeightStyle: SxProps<Theme> = {
-  height: 'calc(100vh - 64px - 16px)'
+  height: 'calc(100vh - 64px)'
 } as const
