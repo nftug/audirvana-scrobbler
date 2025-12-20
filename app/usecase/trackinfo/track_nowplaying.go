@@ -3,6 +3,7 @@ package trackinfo
 import (
 	"audirvana-scrobbler/app/bindings"
 	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/lib/option"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/samber/do"
-	"github.com/samber/lo"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -47,7 +47,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 
 	t.app = app
 
-	npChan := make(chan domain.NowPlaying, 5)
+	npChan := make(chan option.Option[domain.NowPlaying], 5)
 	errChan := make(chan error, 5)
 
 	go t.tracker.StreamNowPlaying(ctx, npChan, errChan)
@@ -63,11 +63,12 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	}
 }
 
-func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, np domain.NowPlaying) {
+func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt option.Option[domain.NowPlaying]) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 
-	if lo.IsEmpty(np) {
+	np, ok := npOpt.TryUnwrap()
+	if !ok {
 		t.app.EmitEvent(bindings.NotifyNowPlaying, nil, nil)
 		return
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 type NowPlayingTracker interface {
-	StreamNowPlaying(ctx context.Context, npChan chan<- NowPlaying, errChan chan<- error)
+	StreamNowPlaying(ctx context.Context, npChan chan<- option.Option[NowPlaying], errChan chan<- error)
 }
 
 type TrackInfoRepository interface {
