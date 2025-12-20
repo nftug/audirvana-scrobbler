@@ -34,7 +34,8 @@ func (s scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 	if err != nil {
 		return bindings.NewInternalError("Error while getting tracks from DB: %v", err)
 	}
-	tracks = lo.Filter(tracks, func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt() == nil })
+	tracks = lo.Filter(tracks,
+		func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt().IsNone() })
 
 	if !s.lastfm.IsLoggedIn() {
 		return bindings.NewNotLoggedInError()

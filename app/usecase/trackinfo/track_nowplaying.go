@@ -91,7 +91,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 	shouldAdd := percentage >= cfg.PositionThreshold && !t.npPrev.IsAdded
 
 	if shouldAdd {
-		track := domain.CreateTrackInfo(np, time.Now().UTC())
+		track := domain.NewTrackInfo(np, time.Now().UTC())
 
 		// Scrobble
 		if shouldScrobble {

@@ -33,7 +33,7 @@ func NewTrackInfoDBSchema(entity domain.TrackInfo) TrackInfoDBSchema {
 		Track:       entity.Track(),
 		Duration:    entity.Duration(),
 		PlayedAt:    entity.PlayedAt(),
-		ScrobbledAt: entity.ScrobbledAt(),
+		ScrobbledAt: entity.ScrobbledAt().Unwrap(),
 	}
 }
 

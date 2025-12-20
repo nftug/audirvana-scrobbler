@@ -80,7 +80,8 @@ func (l *lastFMAPIImpl) RemoveSessionKey() {
 
 func (l *lastFMAPIImpl) Scrobble(ctx context.Context, tracks []domain.TrackInfo) (map[string]any, error) {
 	// ScrobbleされていないTracksだけを選択
-	tracks = lo.Filter(tracks, func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt() == nil })
+	tracks = lo.Filter(tracks,
+		func(t domain.TrackInfo, _ int) bool { return t.ScrobbledAt().IsNone() })
 
 	if len(tracks) > 50 {
 		return nil, errors.New("number of tracks is more than 50")

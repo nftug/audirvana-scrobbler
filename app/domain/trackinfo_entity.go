@@ -16,13 +16,13 @@ type TrackInfo struct {
 	scrobbledAt option.Option[time.Time]
 }
 
-func (t TrackInfo) ID() int                 { return t.id }
-func (t TrackInfo) Artist() string          { return t.artist }
-func (t TrackInfo) Album() string           { return t.album }
-func (t TrackInfo) Track() string           { return t.track }
-func (t TrackInfo) Duration() float64       { return t.duration }
-func (t TrackInfo) PlayedAt() time.Time     { return t.playedAt }
-func (t TrackInfo) ScrobbledAt() *time.Time { return t.scrobbledAt.Unwrap() }
+func (t TrackInfo) ID() int                               { return t.id }
+func (t TrackInfo) Artist() string                        { return t.artist }
+func (t TrackInfo) Album() string                         { return t.album }
+func (t TrackInfo) Track() string                         { return t.track }
+func (t TrackInfo) Duration() float64                     { return t.duration }
+func (t TrackInfo) PlayedAt() time.Time                   { return t.playedAt }
+func (t TrackInfo) ScrobbledAt() option.Option[time.Time] { return t.scrobbledAt }
 
 func HydrateTrackInfo(
 	id int,
@@ -43,7 +43,7 @@ func HydrateTrackInfo(
 	}
 }
 
-func CreateTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
+func NewTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
 	return TrackInfo{
 		artist:   np.Artist,
 		album:    np.Album,
@@ -57,24 +57,13 @@ func (t TrackInfo) Update(form bindings.TrackInfoForm) (TrackInfo, error) {
 		return t, err
 	}
 
-	updated := TrackInfo{
-		id:          t.id,
-		artist:      form.Artist,
-		album:       form.Album,
-		track:       form.Track,
-		playedAt:    t.playedAt,
-		scrobbledAt: t.scrobbledAt,
-	}
-	return updated, nil
+	t.artist = form.Artist
+	t.album = form.Album
+	t.track = form.Track
+	return t, nil
 }
 
 func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) TrackInfo {
-	return TrackInfo{
-		id:          t.id,
-		artist:      t.artist,
-		album:       t.album,
-		track:       t.track,
-		playedAt:    t.playedAt,
-		scrobbledAt: option.Some(scrobbledAt),
-	}
+	t.scrobbledAt = option.Some(scrobbledAt)
+	return t
 }
