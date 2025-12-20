@@ -2,12 +2,13 @@ package trackinfo
 
 import (
 	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/lib/option"
 	"context"
-	"time"
 
 	"github.com/samber/do"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type trackInfoRepositoryImpl struct {
@@ -37,20 +38,21 @@ func (r *trackInfoRepositoryImpl) GetAll(ctx context.Context) ([]domain.TrackInf
 	return tracks, nil
 }
 
-func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (domain.TrackInfo, error) {
+func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (
+	option.Option[domain.TrackInfo], error) {
 	var ret TrackInfoDBSchema
 
 	query := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{})
 	if err := query.First(&ret).Error; err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
-			return domain.TrackInfo{}, nil
+			return option.None[domain.TrackInfo](), nil
 		default:
-			return domain.TrackInfo{}, err
+			return option.None[domain.TrackInfo](), err
 		}
 	}
 
-	return ret.ToEntity(), nil
+	return option.Some(ret.ToEntity()), nil
 }
 
 func (r *trackInfoRepositoryImpl) Save(ctx context.Context, entity domain.TrackInfo) (domain.TrackInfo, error) {
@@ -62,23 +64,22 @@ func (r *trackInfoRepositoryImpl) Save(ctx context.Context, entity domain.TrackI
 	return col.ToEntity(), nil
 }
 
-func (r *trackInfoRepositoryImpl) MarkAsScrobbled(ctx context.Context, entities []domain.TrackInfo) (
+func (r *trackInfoRepositoryImpl) SaveRange(ctx context.Context, entities []domain.TrackInfo) (
 	[]domain.TrackInfo, error) {
-	ids := lo.Map(entities, func(t domain.TrackInfo, _ int) int { return t.ID() })
-	scrobbledAt := time.Now().UTC()
+	cols := lo.Map(entities, func(t domain.TrackInfo, _ int) TrackInfoDBSchema {
+		return NewTrackInfoDBSchema(t)
+	})
 
-	err := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).
-		Where("id IN ?", ids).
-		Update("scrobbled_at", scrobbledAt).Error
-	if err != nil {
+	if err := r.db.WithContext(ctx).Model(&TrackInfoDBSchema{}).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		UpdateAll: true,
+	}).Create(&cols).Error; err != nil {
 		return entities, err
 	}
 
-	for i, entity := range entities {
-		entities[i] = entity.MarkAsScrobbled(scrobbledAt)
-	}
-
-	return entities, nil
+	return lo.Map(cols, func(t TrackInfoDBSchema, _ int) domain.TrackInfo {
+		return t.ToEntity()
+	}), nil
 }
 
 func (r *trackInfoRepositoryImpl) Delete(ctx context.Context, id int) error {

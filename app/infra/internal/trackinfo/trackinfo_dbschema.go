@@ -3,6 +3,7 @@ package trackinfo
 import (
 	"audirvana-scrobbler/app/bindings"
 	"audirvana-scrobbler/app/domain"
+	"audirvana-scrobbler/app/lib/option"
 	"time"
 
 	"github.com/samber/lo"
@@ -52,5 +53,6 @@ func (t TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
 }
 
 func (t TrackInfoDBSchema) ToEntity() domain.TrackInfo {
-	return domain.ReconstructTrackInfo(t.ID, t.Artist, t.Album, t.Track, t.Duration, t.PlayedAt, t.ScrobbledAt)
+	return domain.HydrateTrackInfo(
+		t.ID, t.Artist, t.Album, t.Track, t.Duration, t.PlayedAt, option.NewOption(t.ScrobbledAt))
 }

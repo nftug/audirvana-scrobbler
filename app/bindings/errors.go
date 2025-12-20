@@ -2,6 +2,9 @@ package bindings
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type ErrorResponse struct {
@@ -22,11 +25,23 @@ func (e *ErrorResponse) Error() string {
 	}
 }
 
-func NewValidationError(field string, format string, a ...any) *ErrorResponse {
-	return &ErrorResponse{
-		Code: ValidationError,
-		Data: []ErrorData{{field, fmt.Sprintf(format, a...)}},
+var defaultValidator = validator.New()
+
+func Validate(s any) error {
+	if err := defaultValidator.Struct(s); err != nil {
+		errData := make([]ErrorData, 0)
+		for _, err := range err.(validator.ValidationErrors) {
+			errData = append(errData, ErrorData{
+				Field:   strings.ToLower(err.Field()),
+				Message: fmt.Sprintf("Validation error on %s: %s %s", err.Field(), err.Tag(), err.Param()),
+			})
+		}
+		return &ErrorResponse{
+			Code: ValidationError,
+			Data: errData,
+		}
 	}
+	return nil
 }
 
 func NewInternalError(format string, a ...any) *ErrorResponse {

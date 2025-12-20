@@ -2,12 +2,8 @@ package domain
 
 import (
 	"audirvana-scrobbler/app/bindings"
-	"audirvana-scrobbler/app/lib"
-	"fmt"
-	"strings"
+	"audirvana-scrobbler/app/lib/option"
 	"time"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type TrackInfo struct {
@@ -17,7 +13,7 @@ type TrackInfo struct {
 	track       string
 	duration    float64
 	playedAt    time.Time
-	scrobbledAt lib.Nullable[time.Time]
+	scrobbledAt option.Option[time.Time]
 }
 
 func (t TrackInfo) ID() int                 { return t.id }
@@ -28,14 +24,14 @@ func (t TrackInfo) Duration() float64       { return t.duration }
 func (t TrackInfo) PlayedAt() time.Time     { return t.playedAt }
 func (t TrackInfo) ScrobbledAt() *time.Time { return t.scrobbledAt.Unwrap() }
 
-func ReconstructTrackInfo(
+func HydrateTrackInfo(
 	id int,
 	artist string,
 	album string,
 	track string,
 	duration float64,
 	playedAt time.Time,
-	scrobbledAt *time.Time,
+	scrobbledAt option.Option[time.Time],
 ) TrackInfo {
 	return TrackInfo{
 		id:          id,
@@ -43,7 +39,7 @@ func ReconstructTrackInfo(
 		album:       album,
 		track:       track,
 		playedAt:    playedAt,
-		scrobbledAt: lib.NewNullable(scrobbledAt),
+		scrobbledAt: scrobbledAt,
 	}
 }
 
@@ -57,20 +53,8 @@ func CreateTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
 }
 
 func (t TrackInfo) Update(form bindings.TrackInfoForm) (TrackInfo, error) {
-	var errData []bindings.ErrorData
-	if err := validator.New().Struct(form); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			errData = append(errData, bindings.ErrorData{
-				Field:   strings.ToLower(err.Field()),
-				Message: fmt.Sprintf("Validation error on %s: %s %s", err.Field(), err.Tag(), err.Param()),
-			})
-		}
-	}
-	if len(errData) > 0 {
-		return t, &bindings.ErrorResponse{
-			Code: bindings.ValidationError,
-			Data: errData,
-		}
+	if err := bindings.Validate(form); err != nil {
+		return t, err
 	}
 
 	updated := TrackInfo{
@@ -91,6 +75,6 @@ func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) TrackInfo {
 		album:       t.album,
 		track:       t.track,
 		playedAt:    t.playedAt,
-		scrobbledAt: lib.NewNullableByVal(scrobbledAt),
+		scrobbledAt: option.Some(scrobbledAt),
 	}
 }

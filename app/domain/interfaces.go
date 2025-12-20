@@ -2,6 +2,7 @@ package domain
 
 import (
 	"audirvana-scrobbler/app/bindings"
+	"audirvana-scrobbler/app/lib/option"
 	"context"
 )
 
@@ -10,10 +11,10 @@ type NowPlayingTracker interface {
 }
 
 type TrackInfoRepository interface {
-	Get(ctx context.Context, id int) (TrackInfo, error)
+	Get(ctx context.Context, id int) (option.Option[TrackInfo], error)
 	GetAll(ctx context.Context) ([]TrackInfo, error)
 	Save(ctx context.Context, entity TrackInfo) (TrackInfo, error)
-	MarkAsScrobbled(ctx context.Context, entities []TrackInfo) ([]TrackInfo, error)
+	SaveRange(ctx context.Context, entities []TrackInfo) ([]TrackInfo, error)
 	Delete(ctx context.Context, id int) error
 }
 
