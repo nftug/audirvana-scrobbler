@@ -16,7 +16,7 @@
     "@mui/icons-material": "^6.3.1",
     "@mui/material": "^6.3.1",
     "@tanstack/react-query": "^5.62.15",
-    "@wailsio/runtime": "3.0.0-alpha.66",
+    "@wailsio/runtime": "3.0.0-alpha.76",
     "dayjs": "^1.11.13",
     "jotai": "^2.12.1",
     "notistack": "^3.0.2",

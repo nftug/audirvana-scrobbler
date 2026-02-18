@@ -10,10 +10,11 @@ import (
 
 	"github.com/samber/do"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 	"github.com/wailsapp/wails/v3/pkg/icons"
 )
 
-//go:embed all:frontend/dist
+//go:embed frontend/dist
 var assets embed.FS
 
 func main() {
@@ -46,25 +47,28 @@ func main() {
 	tracker := do.MustInvoke[trackinfo.TrackNowPlaying](injector)
 	go tracker.Execute(app)
 
-	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  "Audirvana Scrobbler",
 		Width:  1024,
 		Height: 768,
 		URL:    "/",
-		ShouldClose: func(window *application.WebviewWindow) bool {
-			window.Hide()
-			return false
-		},
 		Hidden: true,
 	})
 
+	window.RegisterHook(events.Mac.WindowShouldClose, func(event *application.WindowEvent) {
+		event.Cancel()
+		window.Hide()
+	})
+
 	showWindow := func() {
-		// window.SetURL("/")
-		window.Focus()
+		if window.NativeWindow() == nil {
+			return
+		}
 		window.Show()
+		window.Focus()
 	}
 
-	systray := app.NewSystemTray()
+	systray := app.SystemTray.New()
 	systray.SetTemplateIcon(icons.SystrayMacTemplate)
 	systray.OnClick(showWindow)
 

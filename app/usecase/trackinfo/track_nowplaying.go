@@ -69,7 +69,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 
 	np, ok := npOpt.TryUnwrap()
 	if !ok {
-		t.app.EmitEvent(bindings.NotifyNowPlaying, nil, nil)
+		t.app.Event.Emit(bindings.NotifyNowPlaying, nil, nil)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 	shouldScrobble := t.lastfm.IsLoggedIn() && cfg.ScrobbleImmediately
 
 	// Update now playing
-	t.app.EmitEvent(bindings.NotifyNowPlaying, np.ToResponse(), nil)
+	t.app.Event.Emit(bindings.NotifyNowPlaying, np.ToResponse(), nil)
 
 	if shouldScrobble && !t.npPrev.IsNotified {
 		if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
@@ -113,7 +113,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 			return
 		}
 
-		t.app.EmitEvent(bindings.NotifyAdded)
+		t.app.Event.Emit(bindings.NotifyAdded)
 	}
 
 	// Update npPrev
@@ -126,5 +126,5 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 }
 
 func (t *trackNowPlayingImpl) notifyError(format string, a ...any) {
-	t.app.EmitEvent(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
+	t.app.Event.Emit(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
 }

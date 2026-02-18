@@ -42,7 +42,11 @@ func (c *configProviderImpl) Write(cfg domain.Config) error {
 
 func loadConfig(filepath string) (domain.Config, error) {
 	data, err := os.ReadFile(filepath)
-	if err != nil {
+
+	// If file does not exist, return default config
+	if os.IsNotExist(err) {
+		return domain.DefaultConfig, nil
+	} else if err != nil {
 		return domain.Config{}, err
 	}
 	cfg := domain.DefaultConfig
