@@ -52,18 +52,17 @@ func NewTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
 	}
 }
 
-func (t TrackInfo) Update(form bindings.TrackInfoForm) (TrackInfo, error) {
+func (t *TrackInfo) Update(form bindings.TrackInfoForm) error {
 	if err := bindings.Validate(form); err != nil {
-		return t, err
+		return err
 	}
 
 	t.artist = form.Artist
 	t.album = form.Album
 	t.track = form.Track
-	return t, nil
+	return nil
 }
 
-func (t TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) TrackInfo {
+func (t *TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) {
 	t.scrobbledAt = option.Some(scrobbledAt)
-	return t
 }

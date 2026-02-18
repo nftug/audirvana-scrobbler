@@ -11,10 +11,10 @@ type NowPlayingTracker interface {
 }
 
 type TrackInfoRepository interface {
-	Get(ctx context.Context, id int) (option.Option[TrackInfo], error)
+	Get(ctx context.Context, id int) (*TrackInfo, error)
 	GetAll(ctx context.Context) ([]TrackInfo, error)
-	Save(ctx context.Context, entity TrackInfo) (TrackInfo, error)
-	SaveRange(ctx context.Context, entities []TrackInfo) ([]TrackInfo, error)
+	Save(ctx context.Context, entity *TrackInfo) error
+	SaveRange(ctx context.Context, entities []TrackInfo) error
 	Delete(ctx context.Context, id int) error
 }
 

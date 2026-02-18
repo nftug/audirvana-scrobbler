@@ -24,21 +24,18 @@ func NewSaveTrackInfo(i *do.Injector) (SaveTrackInfo, error) {
 
 func (s saveTrackInfoImpl) Execute(
 	ctx context.Context, id int, form bindings.TrackInfoForm) *bindings.ErrorResponse {
-	tOpt, err := s.repo.Get(ctx, id)
+	track, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return bindings.NewInternalError("Error while getting track info from DB: %v", err)
-	}
-	track, ok := tOpt.TryUnwrap()
-	if !ok {
+	} else if track == nil {
 		return bindings.NewNotFoundError()
 	}
 
-	track, err = track.Update(form)
-	if err != nil {
+	if err := track.Update(form); err != nil {
 		return err.(*bindings.ErrorResponse)
 	}
 
-	if _, err := s.repo.Save(ctx, track); err != nil {
+	if err := s.repo.Save(ctx, track); err != nil {
 		return bindings.NewInternalError("Error while saving track info: %v", err)
 	}
 

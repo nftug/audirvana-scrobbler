@@ -48,10 +48,11 @@ func (s scrobbleAllImpl) Execute(ctx context.Context) *bindings.ErrorResponse {
 		}
 
 		updatedTracks := lo.Map(tracks, func(t domain.TrackInfo, _ int) domain.TrackInfo {
-			return t.MarkAsScrobbled(time.Now().UTC())
+			t.MarkAsScrobbled(time.Now().UTC())
+			return t
 		})
 
-		if _, err := s.repo.SaveRange(ctx, updatedTracks); err != nil {
+		if err := s.repo.SaveRange(ctx, updatedTracks); err != nil {
 			return bindings.NewInternalError("Error while saving scrobbled tracks: %v", err)
 		}
 

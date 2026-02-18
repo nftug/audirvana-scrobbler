@@ -99,7 +99,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 			if err != nil {
 				t.notifyError("scrobble failed: %v", err)
 			} else {
-				track = track.MarkAsScrobbled(time.Now().UTC())
+				track.MarkAsScrobbled(time.Now().UTC())
 			}
 
 			// For debug
@@ -108,7 +108,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 		}
 
 		// Save
-		if _, err := t.repo.Save(ctx, track); err != nil {
+		if err := t.repo.Save(ctx, &track); err != nil {
 			t.notifyError("failed to save play log: %v", err)
 			return
 		}
