@@ -2,22 +2,31 @@ package common
 
 import (
 	"audirvana-scrobbler/app/infra/internal/trackinfo"
+	"context"
+	"database/sql"
 
-	"github.com/glebarez/sqlite"
+	_ "github.com/glebarez/go-sqlite"
 	"github.com/samber/do"
-	"gorm.io/gorm"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/sqlitedialect"
 )
 
-func NewDB(i *do.Injector) (*gorm.DB, error) {
+func NewDB(i *do.Injector) (*bun.DB, error) {
 	configPath := do.MustInvoke[*ConfigPathProvider](i)
 	dbPath := configPath.GetJoinedPath("local_tracks.db")
 
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	sqldb, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&trackinfo.TrackInfoDBSchema{}); err != nil {
+	db := bun.NewDB(sqldb, sqlitedialect.New())
+
+	if _, err := db.NewCreateTable().
+		Model((*trackinfo.TrackInfoDBSchema)(nil)).
+		IfNotExists().
+		Exec(context.Background()); err != nil {
+		_ = sqldb.Close()
 		return nil, err
 	}
 

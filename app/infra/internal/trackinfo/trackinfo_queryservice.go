@@ -7,27 +7,27 @@ import (
 
 	"github.com/samber/do"
 	"github.com/samber/lo"
-	"gorm.io/gorm"
+	"github.com/uptrace/bun"
 )
 
 type trackInfoQueryServiceImpl struct {
-	db *gorm.DB
+	db *bun.DB
 }
 
 func NewTrackInfoQueryService(i *do.Injector) (domain.TrackInfoQueryService, error) {
 	return &trackInfoQueryServiceImpl{
-		db: do.MustInvoke[*gorm.DB](i),
+		db: do.MustInvoke[*bun.DB](i),
 	}, nil
 }
 
 func (q *trackInfoQueryServiceImpl) GetAll(ctx context.Context) ([]bindings.TrackInfoResponse, error) {
 	var ret []TrackInfoDBSchema
 
-	query := q.db.WithContext(ctx).Model(&TrackInfoDBSchema{})
-	if err := query.Order("played_at DESC").Find(&ret).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return []bindings.TrackInfoResponse{}, nil
-		}
+	if err := q.db.NewSelect().
+		Model(&ret).
+		Where("deleted_at IS NULL").
+		Order("played_at DESC").
+		Scan(ctx); err != nil {
 		return nil, err
 	}
 

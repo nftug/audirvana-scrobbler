@@ -7,22 +7,19 @@ import (
 	"time"
 
 	"github.com/samber/lo"
-	"gorm.io/gorm"
+	"github.com/uptrace/bun"
 )
 
 type TrackInfoDBSchema struct {
-	ID          int        `gorm:"primaryKey"`
-	Artist      string     `gorm:"not null"`
-	Album       string     `gorm:"not null"`
-	Track       string     `gorm:"not null"`
-	Duration    float64    `gorm:"not null"`
-	PlayedAt    time.Time  `gorm:"not null"`
-	ScrobbledAt *time.Time `gorm:"null;default:null"`
-	DeletedAt   gorm.DeletedAt
-}
-
-func (TrackInfoDBSchema) TableName() string {
-	return "track_info"
+	bun.BaseModel `bun:"table:track_info"`
+	ID            int        `bun:"id,pk,autoincrement,nullzero"`
+	Artist        string     `bun:"artist,notnull"`
+	Album         string     `bun:"album,notnull"`
+	Track         string     `bun:"track,notnull"`
+	Duration      float64    `bun:"duration,notnull"`
+	PlayedAt      time.Time  `bun:"played_at,notnull"`
+	ScrobbledAt   *time.Time `bun:"scrobbled_at,nullzero"`
+	DeletedAt     *time.Time `bun:"deleted_at,nullzero"`
 }
 
 func NewTrackInfoDBSchema(entity domain.TrackInfo) TrackInfoDBSchema {
