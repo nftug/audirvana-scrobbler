@@ -43,7 +43,7 @@ func (t TrackInfoDBSchema) ToResponse() bindings.TrackInfoResponse {
 		PlayedAt: t.PlayedAt.Format(time.RFC3339),
 		ScrobbledAt: lo.TernaryF(
 			t.ScrobbledAt != nil,
-			func() *string { return lo.ToPtr(t.ScrobbledAt.Format(time.RFC3339)) },
+			func() *string { return new(t.ScrobbledAt.Format(time.RFC3339)) },
 			func() *string { return nil },
 		),
 	}

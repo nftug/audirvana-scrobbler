@@ -52,7 +52,7 @@ func (r *trackInfoRepositoryImpl) Get(ctx context.Context, id int) (*domain.Trac
 		return nil, err
 	}
 
-	return lo.ToPtr(ret.ToEntity()), nil
+	return new(ret.ToEntity()), nil
 }
 
 func (r *trackInfoRepositoryImpl) Save(ctx context.Context, entity *domain.TrackInfo) error {

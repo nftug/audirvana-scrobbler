@@ -53,18 +53,18 @@ func (l *lastFMAPIImpl) createSignature(params url.Values) string {
 	}
 	sort.Strings(keys)
 
-	var sigPlain string
+	var sigPlain strings.Builder
 	for _, k := range keys {
-		sigPlain += k + params.Get(k)
+		sigPlain.WriteString(k + params.Get(k))
 	}
-	sigPlain += l.cfg.apiSecret
+	sigPlain.WriteString(l.cfg.apiSecret)
 
 	hasher := md5.New()
-	hasher.Write([]byte(sigPlain))
+	hasher.Write([]byte(sigPlain.String()))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func invokeAPICall(ctx context.Context, httpMethod string, params url.Values) (result map[string]any, err error) {
+func invokeAPICall(ctx context.Context, httpMethod string, params url.Values) (map[string]any, error) {
 	params.Add("format", "json")
 
 	req, err := http.NewRequestWithContext(ctx, httpMethod, apiURL, strings.NewReader(params.Encode()))
@@ -83,6 +83,8 @@ func invokeAPICall(ctx context.Context, httpMethod string, params url.Values) (r
 	if err != nil {
 		return nil, err
 	}
+
+	var result map[string]any
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
@@ -95,5 +97,5 @@ func invokeAPICall(ctx context.Context, httpMethod string, params url.Values) (r
 		)
 	}
 
-	return
+	return result, nil
 }

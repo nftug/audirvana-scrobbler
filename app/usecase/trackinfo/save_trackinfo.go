@@ -32,7 +32,7 @@ func (s saveTrackInfoImpl) Execute(
 	}
 
 	if err := track.Update(form); err != nil {
-		return err.(*bindings.ErrorResponse)
+		return bindings.NewInternalError("Error while updating track info: %v", err)
 	}
 
 	if err := s.repo.Save(ctx, track); err != nil {

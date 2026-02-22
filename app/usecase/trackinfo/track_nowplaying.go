@@ -25,7 +25,7 @@ type trackNowPlayingImpl struct {
 	tracker     domain.NowPlayingTracker
 	lastfm      domain.LastFMAPI
 	cfgProvider domain.ConfigProvider
-	app         *application.App
+	event       *application.EventManager
 	mutex       sync.Mutex
 	npPrev      domain.NowPlaying
 }
@@ -45,7 +45,7 @@ func (t *trackNowPlayingImpl) Execute(app *application.App) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	t.app = app
+	t.event = app.Event
 
 	npChan := make(chan option.Option[domain.NowPlaying], 5)
 	errChan := make(chan error, 5)
@@ -69,7 +69,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 
 	np, ok := npOpt.TryUnwrap()
 	if !ok {
-		t.app.Event.Emit(bindings.NotifyNowPlaying, nil, nil)
+		t.event.Emit(bindings.NotifyNowPlaying, nil, nil)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 	shouldScrobble := t.lastfm.IsLoggedIn() && cfg.ScrobbleImmediately
 
 	// Update now playing
-	t.app.Event.Emit(bindings.NotifyNowPlaying, np.ToResponse(), nil)
+	t.event.Emit(bindings.NotifyNowPlaying, np.ToResponse(), nil)
 
 	if shouldScrobble && !t.npPrev.IsNotified {
 		if _, err := t.lastfm.UpdateNowPlaying(ctx, np); err != nil {
@@ -113,7 +113,7 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 			return
 		}
 
-		t.app.Event.Emit(bindings.NotifyAdded)
+		t.event.Emit(bindings.NotifyAdded)
 	}
 
 	// Update npPrev
@@ -126,5 +126,5 @@ func (t *trackNowPlayingImpl) processNowPlaying(ctx context.Context, npOpt optio
 }
 
 func (t *trackNowPlayingImpl) notifyError(format string, a ...any) {
-	t.app.Event.Emit(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
+	t.event.Emit(bindings.NotifyNowPlaying, nil, bindings.NewInternalError(format, a...))
 }

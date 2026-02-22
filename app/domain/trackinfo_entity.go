@@ -38,6 +38,7 @@ func HydrateTrackInfo(
 		artist:      artist,
 		album:       album,
 		track:       track,
+		duration:    duration,
 		playedAt:    playedAt,
 		scrobbledAt: scrobbledAt,
 	}
@@ -48,6 +49,7 @@ func NewTrackInfo(np NowPlaying, playedAt time.Time) TrackInfo {
 		artist:   np.Artist,
 		album:    np.Album,
 		track:    np.Track,
+		duration: np.Duration,
 		playedAt: playedAt,
 	}
 }
@@ -65,4 +67,8 @@ func (t *TrackInfo) Update(form bindings.TrackInfoForm) error {
 
 func (t *TrackInfo) MarkAsScrobbled(scrobbledAt time.Time) {
 	t.scrobbledAt = option.Some(scrobbledAt)
+}
+
+func (t *TrackInfo) Equals(other TrackInfo) bool {
+	return t.artist == other.artist && t.album == other.album && t.track == other.track
 }
